@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 title: Maleesha Fonseka
 description: Project write-ups — backend, systems and network security engineering
-url: https://YOUR-USERNAME.github.io   # your user site URL; no trailing slash
+url: https://malee-fonseka.github.io   # your user site URL; no trailing slash
 permalink: pretty                      # /projects/voltstream/ instead of /projects/voltstream.html
 
 # ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ back_to_top_text: "Back to top"
 
 # Links in the top-right corner of every page
 aux_links:
-  GitHub: https://github.com/YOUR-USERNAME
+  GitHub: https://github.com/Malee-Fonseka
 aux_links_new_tab: true
 
 # Mermaid diagrams in ```mermaid code blocks (dark theme set in _includes/mermaid_config.js)
