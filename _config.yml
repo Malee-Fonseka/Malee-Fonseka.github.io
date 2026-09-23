@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# Site identity
+# ---------------------------------------------------------------------------
+title: Maleesha Fonseka
+description: Project write-ups — backend, systems and network security engineering
+url: https://YOUR-USERNAME.github.io   # your user site URL; no trailing slash
+permalink: pretty                      # /projects/voltstream/ instead of /projects/voltstream.html
+
+# ---------------------------------------------------------------------------
+# Theme (version is pinned in the Gemfile, not here)
+# ---------------------------------------------------------------------------
+theme: just-the-docs
+color_scheme: dark
+
+search_enabled: true
+heading_anchors: true
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Links in the top-right corner of every page
+aux_links:
+  GitHub: https://github.com/YOUR-USERNAME
+aux_links_new_tab: true
+
+# Mermaid diagrams in ```mermaid code blocks (dark theme set in _includes/mermaid_config.js)
+mermaid:
+  version: "11.17.2"
+
+# Callout styles, used as `{: .note }` or `{: .warning }` above a paragraph
+callouts:
+  note:
+    title: Note
+    color: blue
+  warning:
+    title: Warning
+    color: red
+
+# Every page uses the theme layout unless its front matter says otherwise
+defaults:
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: default
+
+# Repository files that must not become pages
+exclude:
+  - README.md
+  - GUIDE.md
+  - scripts/
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
