@@ -1,0 +1,2 @@
+# Keep shell scripts LF-only so they run in CI even when edited on Windows.
+*.sh text eol=lf
