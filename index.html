@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="snap">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/hero-animation.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -36,9 +37,10 @@
   <main id="main">
 
     <!-- ============ HERO ============ -->
-    <section class="hero">
+    <section class="hero screen">
       <div class="container hero__grid">
-        <div>
+        <!-- Solid card, so the landing animation behind it never shows through the text -->
+        <div class="hero__card framed">
           <!-- EDIT: change or delete this status line -->
           <p class="hero__status rise"><span class="dot" aria-hidden="true"></span> open to opportunities</p>
 
@@ -58,6 +60,7 @@
 
           <div class="hero__ctas rise" style="--i:4">
             <a class="btn btn--primary" href="projects.html">view projects <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn" href="about.html">learn more about me</a>
             <a class="btn" href="#contact">get in touch</a>
           </div>
         </div>
@@ -65,10 +68,16 @@
         <!-- Filler slot: content to come (backlog V11-10). Keep it empty until then. -->
         <div class="hero__filler" aria-hidden="true"></div>
       </div>
+
+      <a class="scroll-cue" href="#contact" aria-label="Scroll to Get in touch">scroll <span aria-hidden="true">↓</span></a>
+
+      <!-- Landing animation label and switch. Hidden until assets/js/hero-animation.js starts an animation. -->
+      <p class="anim-label" aria-live="polite" aria-atomic="true" hidden>now playing · <span class="anim-label__name"></span></p>
+      <button class="anim-switch" type="button" aria-label="Switch background animation" hidden><span aria-hidden="true">↻</span> switch</button>
     </section>
 
     <!-- ============ CONTACT ============ -->
-    <section class="section" id="contact">
+    <section class="section screen screen--last" id="contact">
       <div class="container">
         <header class="sec-head">
           <div class="sec-head__meta"><span class="sec-head__tag">contact</span><span>3 channels</span></div>

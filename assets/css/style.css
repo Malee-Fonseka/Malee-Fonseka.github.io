@@ -55,6 +55,7 @@
   --maxw:     1120px;
   --gutter:   clamp(16px, 4vw, 40px);
   --header-h: 60px;
+  --footer-h: 78px;   /* the footer's height: 28px padding × 2, one line, 1px border */
   --ease:     cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -132,6 +133,7 @@ h1, h2, h3, h4 {
 
 p { text-wrap: pretty; }
 ul[class], ol[class] { list-style: none; padding: 0; }
+[hidden] { display: none !important; }
 code, kbd, pre { font-family: inherit; }
 hr { border: 0; border-top: 1px solid var(--line); }
 
@@ -171,6 +173,31 @@ hr { border: 0; border-top: 1px solid var(--line); }
 .section--tight,
 .section + .section { padding-top: 0; }
 
+/* Full-screen section (home and about pages): fills the viewport below the
+   header and centres its content vertically. .screen--last leaves room for
+   the footer, so the final section and the footer share one screen. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-h));
+  min-height: calc(100svh - var(--header-h));
+}
+.screen--last {
+  min-height: calc(100vh - var(--header-h) - var(--footer-h));
+  min-height: calc(100svh - var(--header-h) - var(--footer-h));
+}
+
+/* Section snapping, opted into per page with <html class="snap">.
+   Only home and about use it; long reading pages scroll freely.
+   The footer snap point keeps it reachable even if it wraps to two lines. */
+html.snap {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: var(--header-h);
+}
+html.snap .screen { scroll-snap-align: start; }
+html.snap .site-footer { scroll-snap-align: end; }
+
 /* Header */
 .site-header {
   position: sticky;
@@ -179,7 +206,9 @@ hr { border: 0; border-top: 1px solid var(--line); }
   background: rgba(11, 13, 14, 0.9);
   -webkit-backdrop-filter: blur(8px);
           backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--line);
+  /* Bottom hairline as a shadow, not a border, so the header is exactly
+     --header-h tall and snapped sections line up under it */
+  box-shadow: 0 1px 0 var(--line);
 }
 
 .site-header__inner {
@@ -252,8 +281,10 @@ hr { border: 0; border-top: 1px solid var(--line); }
   background: var(--teal);
 }
 
-/* Footer: copyright and links */
+/* Footer: copyright and links. Its height must match --footer-h exactly,
+   or the last full-screen section can't scroll fully into place. */
 .site-footer {
+  min-height: var(--footer-h);
   margin-top: auto;
   border-top: 1px solid var(--line);
   padding-block: 28px;
@@ -482,22 +513,114 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.35; }
 }
+@keyframes bob {
+  0%, 100% { transform: none; }
+  50%      { transform: translateY(3px); }
+}
 
 
 /* 5. Landing page
    ========================================================================== */
 
+/* The hero is also a .screen. The extra bottom padding keeps the scroll cue
+   clear of the buttons. isolation keeps the animation canvas (z-index: -1)
+   inside the hero instead of behind the page. */
 .hero {
-  display: flex;
-  align-items: center;
-  min-height: calc(100vh - var(--header-h));
-  min-height: calc(100svh - var(--header-h));
-  padding-block: clamp(48px, 8vw, 96px);
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(56px, 5vw, 72px) clamp(64px, 6vw, 80px);
 }
+
+/* Solid card holding the hero text, in front of the animation */
+.hero__card {
+  padding: clamp(24px, 2.5vw, 36px);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+}
+
+/* "scroll ↓" cue at the bottom of the hero, linking to Get in touch */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.scroll-cue:hover { color: var(--teal-hi); }
+.scroll-cue span { display: inline-block; animation: bob 2.4s ease-in-out infinite; }
+
+/* Landing animation canvas, created by assets/js/hero-animation.js. It fills
+   the whole hero behind the card and is transparent except where it draws.
+   Each animation reads its colours from here when it starts. */
+.hero__anim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  --flock-bird: #2e7a73;        /* murmuration */
+
+  --life-1: #34445e;            /* conway: blue */
+  --life-2: #2f5652;            /* teal */
+  --life-3: #5e3533;            /* red */
+  --life-4: #6b5035;            /* orange */
+  --life-5: #4a3b55;            /* purple */
+  --life-light: #a9a49b;        /* newborn cells are tinted toward this */
+  --life-shade: #141617;        /* older cells darken toward this */
+
+  --tank-ripple: #5e8f99;       /* fish tank: light on a ripple crest */
+  --tank-trough: #0c0e0f;       /* shadow in a ripple trough */
+  --tank-dot-dark: #223a2a;     /* a dot at rest */
+  --tank-dot-light: #4b6e52;    /* a dot at the peak of its blink */
+}
+
+/* "now playing" label (upper left) and switch button (lower right), lined
+   up with the edges of the page content */
+.anim-label,
+.anim-switch {
+  position: absolute;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.anim-label {
+  top: 16px;
+  left: max(var(--gutter), calc((100% - var(--maxw)) / 2));
+  padding: 4px 8px;
+  margin-left: -8px;            /* text lines up with the card edge */
+  background: var(--bg);
+}
+.anim-label__name { color: var(--text-dim); }
+.anim-switch {
+  bottom: 20px;
+  right: max(var(--gutter), calc((100% - var(--maxw)) / 2));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-1);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.anim-switch:hover { color: var(--teal-hi); border-color: var(--teal); }
 
 .hero__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(36px, 6vw, 88px);
 }
@@ -506,7 +629,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   font-size: var(--fs-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -514,7 +637,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 
 .hero__name {
-  font-size: clamp(2.6rem, 8vw, 5.4rem);
+  font-size: clamp(2.6rem, 7vw, 4.8rem);
   line-height: 1;
   letter-spacing: -0.045em;
 }
@@ -522,7 +645,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .hero__name .last { font-weight: 300; color: var(--silver); }
 
 .hero__role {
-  margin-top: 28px;
+  margin-top: 24px;
   font-size: var(--fs-md);
   color: var(--text);
 }
@@ -530,7 +653,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 
 .hero__intro { margin-top: 14px; max-width: 54ch; color: var(--text-dim); }
 
-.hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+.hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 
 /* .hero__filler is the right-hand slot reserved for the landing filler
    (backlog V11-10). While empty it holds the column on wide screens and is
@@ -1033,11 +1156,28 @@ a.figure__media:focus-visible::after { opacity: 1; }
 /* 8. About page
    ========================================================================== */
 
+/* Middle section: taller than the screen, so it starts at the top */
+.about-background {
+  justify-content: flex-start;
+  padding-top: clamp(48px, 7vw, 80px);
+}
+
+/* Final section: just the call-to-action card, centred both ways */
+.about-end .cta-band {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+
 .about-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: clamp(32px, 6vw, 80px);
+}
+/* Text and photo side by side, but only while the photo is in the page */
+@media (min-width: 901px) {
+  .about-intro:has(> .portrait) { grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr); }
 }
 .about-intro__text > p { max-width: 62ch; color: var(--text-dim); }
 .about-intro__text > p + p { margin-top: 14px; }
@@ -1142,10 +1282,8 @@ a.figure__media:focus-visible::after { opacity: 1; }
 
 @media (max-width: 900px) {
   .hero__grid,
-  .contact-grid,
-  .about-intro { grid-template-columns: minmax(0, 1fr); }
+  .contact-grid { grid-template-columns: minmax(0, 1fr); }
 
-  .hero { min-height: 0; }
   .hero__filler:empty { display: none; }
 
   .cs-layout { grid-template-columns: minmax(0, 1fr); gap: 40px; }
@@ -1182,6 +1320,15 @@ a.figure__media:focus-visible::after { opacity: 1; }
 @media (max-width: 560px) {
   .brand__name { display: none; }
 
+  /* The hero card becomes a full-width band, giving the text the whole width */
+  .hero__card {
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 28px var(--gutter);
+    border-inline: 0;
+  }
+  .hero__card::before,
+  .hero__card::after { display: none; }
+
   .ledger__k { flex-basis: 7ch; }
   .ledger__leader { display: none; }
 }
@@ -1192,4 +1339,8 @@ a.figure__media:focus-visible::after { opacity: 1; }
     transition: none !important;
   }
   html { scroll-behavior: auto; }
+
+  /* The animations draw a still frame instead, so there is nothing to switch */
+  .anim-label,
+  .anim-switch { display: none !important; }
 }
