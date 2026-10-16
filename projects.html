@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects · Maleesha Fonseka</title>
+  <meta name="description" content="Case studies of software projects by Maleesha Fonseka, each with architecture, decisions, code and outcomes.">
+  <meta name="theme-color" content="#0b0d0e">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="projects.html" aria-current="page">projects</a>
+        <a href="about.html">about</a>
+        <a href="index.html#contact">contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <header class="page-head">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="index.html">~</a>/<span aria-current="page">projects</span>
+        </nav>
+        <h1 class="rise">Projects</h1>
+        <p class="page-head__lede rise" style="--i:1">
+          Each project has its own case study covering what problem it solves, how it is put together,
+          the trade-offs behind the design, and what I would do differently next time.
+          Open a card to read the full write-up.
+        </p>
+        <!-- EDIT: update the count when you add a project -->
+        <p class="page-head__stats rise" style="--i:2">
+          <span>entries <b>01</b></span>
+          <span>updated <b>2026-10</b></span>
+        </p>
+      </header>
+
+      <section class="section section--tight" aria-label="Project list">
+        <!--
+          ADDING A PROJECT
+          1. Copy the folder projects/_template/ to projects/<your-slug>/ and fill in its index.html.
+          2. Copy the card below (everything from <article class="card framed"> to </article>),
+             paste it at the TOP of the list so the newest project comes first, and edit it.
+          Cards are numbered P-01, P-02 … automatically in the order they appear.
+
+          CARD TEMPLATE
+          <article class="card framed">
+            <div class="card__thumb">
+              <img src="projects/your-slug/images/cover.svg" alt="" loading="lazy" width="1200" height="675">
+            </div>
+            <div class="card__body">
+              <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
+              <h2 class="card__title"><a class="card__link" href="projects/your-slug/index.html">Project title</a></h2>
+              <p class="card__desc">One or two sentences: what it is and why it is interesting.</p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">Main tech</li><li>Tech</li><li>Tech</li>
+              </ul>
+              <p class="card__foot"><span>category · category</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          Status options: status--done (complete), status--wip (in progress), status--archived (archived).
+          The thumbnail is optional: delete the whole <div class="card__thumb"> if you have no image.
+        -->
+
+        <div class="cards">
+
+          <article class="card framed rise" style="--i:3">
+            <div class="card__thumb">
+              <img src="projects/screen-shield/images/cover.svg" alt="" loading="lazy" width="1200" height="675">
+            </div>
+            <div class="card__body">
+              <p class="card__meta"><span>2026</span><span class="status status--wip">in progress</span></p>
+              <h2 class="card__title"><a class="card__link" href="projects/screen-shield/index.html">Screen-Shield</a></h2>
+              <p class="card__desc">
+                A bilingual (Sinhala / English) screen-time and digital-wellbeing app for Sri Lankan families,
+                built by a team of six as a microservices prototype.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">React Native</li><li class="key">Node.js</li><li>Expo</li><li>TypeScript</li>
+                <li>PostgreSQL</li><li>MongoDB</li><li>Docker</li>
+              </ul>
+              <p class="card__foot"><span>mobile · backend</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <!-- Placeholder slot. Delete this block once you have a second project. -->
+          <div class="card card--ghost framed rise" style="--i:4" aria-hidden="true">
+            <p><strong>Next case study</strong>being written up</p>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <dl class="titleblock">
+        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
+        <div><dt>sheet</dt><dd>02 / projects</dd></div>
+        <div><dt>rev</dt><dd>2026.10</dd></div>
+        <div><dt>medium</dt><dd>html + css</dd></div>
+      </dl>
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:your.email@example.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" width="960" height="500" font-family="'Fira Code', 'Cascadia Code', Consolas, Menlo, monospace">
+  <title>Screen-Shield runtime architecture</title>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#b3bbc1" stroke-opacity=".05"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#3d9f96"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="500" fill="#0d1011"/>
+  <rect width="960" height="500" fill="url(#grid)"/>
+
+  <!-- Sheet labels -->
+  <text x="24" y="34" font-size="12" fill="#788187" letter-spacing="2">SCREEN-SHIELD · RUNTIME VIEW</text>
+  <text x="936" y="34" font-size="12" fill="#788187" letter-spacing="2" text-anchor="end">ARCH-01</text>
+  <text x="24" y="86" font-size="11" fill="#788187" letter-spacing="2">CLIENT</text>
+
+  <!-- Docker Compose network boundary -->
+  <rect x="236" y="62" width="700" height="410" fill="none" stroke="#b3bbc1" stroke-opacity=".35" stroke-dasharray="6 6"/>
+  <text x="252" y="86" font-size="11" fill="#788187" letter-spacing="2">DOCKER COMPOSE · screenshield-net</text>
+
+  <!-- Mobile client -->
+  <rect x="24" y="196" width="180" height="108" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="40" y="226" font-size="15" font-weight="600" fill="#e7ebed">Expo app</text>
+  <text x="40" y="250" font-size="12" fill="#9aa3a8">React Native · TS</text>
+  <text x="40" y="270" font-size="12" fill="#9aa3a8">i18n: en / si</text>
+  <text x="40" y="290" font-size="12" fill="#9aa3a8">TanStack Query</text>
+
+  <!-- Client to gateway -->
+  <line x1="204" y1="250" x2="268" y2="250" stroke="#b3bbc1" stroke-opacity=".75" marker-end="url(#arrow)"/>
+  <rect x="204" y="229" width="64" height="14" fill="#0d1011"/>
+  <text x="236" y="240" font-size="10" fill="#9aa3a8" text-anchor="middle">HTTP+JWT</text>
+
+  <!-- API gateway (entry point) -->
+  <rect x="270" y="190" width="176" height="120" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="286" y="220" font-size="15" font-weight="600" fill="#e7ebed">API gateway</text>
+  <text x="286" y="242" font-size="12" fill="#66c2b8">:8080</text>
+  <text x="286" y="266" font-size="12" fill="#9aa3a8">verify JWT</text>
+  <text x="286" y="286" font-size="12" fill="#9aa3a8">inject X-User-*</text>
+
+  <!-- Gateway to services -->
+  <g fill="none" stroke="#3d9f96" stroke-opacity=".9">
+    <path d="M446 250H483V140H518" marker-end="url(#arrow-teal)"/>
+    <path d="M446 250H518" marker-end="url(#arrow-teal)"/>
+    <path d="M483 250V360H518" marker-end="url(#arrow-teal)"/>
+  </g>
+
+  <!-- Services -->
+  <g>
+    <rect x="520" y="100" width="196" height="80" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <text x="536" y="130" font-size="13" font-weight="600" fill="#e7ebed">auth-service</text>
+    <text x="704" y="130" font-size="12" fill="#66c2b8" text-anchor="end">:4001</text>
+    <text x="536" y="158" font-size="12" fill="#9aa3a8">register · login · me</text>
+  </g>
+  <g>
+    <rect x="520" y="210" width="196" height="80" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <text x="536" y="240" font-size="13" font-weight="600" fill="#e7ebed">parental-service</text>
+    <text x="704" y="240" font-size="12" fill="#66c2b8" text-anchor="end">:4003</text>
+    <text x="536" y="268" font-size="12" fill="#9aa3a8">limits CRUD · check</text>
+  </g>
+  <g>
+    <rect x="520" y="320" width="196" height="80" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <text x="536" y="350" font-size="13" font-weight="600" fill="#e7ebed">usage-service</text>
+    <text x="704" y="350" font-size="12" fill="#66c2b8" text-anchor="end">:4002</text>
+    <text x="536" y="378" font-size="12" fill="#9aa3a8">ingest · summaries</text>
+  </g>
+
+  <!-- Parental asks usage for today's minutes -->
+  <line x1="618" y1="290" x2="618" y2="318" stroke="#b3bbc1" stroke-opacity=".75" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <text x="630" y="309" font-size="10" fill="#9aa3a8">REST</text>
+
+  <!-- Services to databases -->
+  <g fill="none" stroke="#b3bbc1" stroke-opacity=".75">
+    <path d="M716 140H748V182H779" marker-end="url(#arrow)"/>
+    <path d="M716 250H748V214H779" marker-end="url(#arrow)"/>
+    <path d="M716 360H779" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- PostgreSQL -->
+  <g>
+    <path d="M780 160v76a70 10 0 0 0 140 0v-76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <ellipse cx="850" cy="160" rx="70" ry="10" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <text x="850" y="200" font-size="13" font-weight="600" fill="#e7ebed" text-anchor="middle">PostgreSQL 16</text>
+    <text x="850" y="220" font-size="11" fill="#9aa3a8" text-anchor="middle">users · usage_rules</text>
+  </g>
+
+  <!-- MongoDB -->
+  <g>
+    <path d="M780 326v70a70 10 0 0 0 140 0v-70" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <ellipse cx="850" cy="326" rx="70" ry="10" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+    <text x="850" y="364" font-size="13" font-weight="600" fill="#e7ebed" text-anchor="middle">MongoDB 7</text>
+    <text x="850" y="384" font-size="11" fill="#9aa3a8" text-anchor="middle">usage_events</text>
+  </g>
+
+  <text x="920" y="456" font-size="11" fill="#788187" text-anchor="end">health-checked · seeded for demos</text>
+
+  <!-- Legend -->
+  <g font-size="11" fill="#9aa3a8">
+    <line x1="24" y1="416" x2="52" y2="416" stroke="#b3bbc1" stroke-opacity=".75"/>
+    <text x="62" y="420">request</text>
+    <line x1="24" y1="438" x2="52" y2="438" stroke="#b3bbc1" stroke-opacity=".75" stroke-dasharray="4 4"/>
+    <text x="62" y="442">service → service</text>
+    <rect x="31" y="453" width="14" height="10" fill="#0f2523" stroke="#3d9f96"/>
+    <text x="62" y="463">entry point</text>
+  </g>
+</svg>

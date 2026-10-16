@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Portrait placeholder</title>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#b3bbc1" stroke-opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="#0e1214"/>
+  <rect width="800" height="1000" fill="url(#grid)"/>
+  <g stroke="#b3bbc1" stroke-opacity=".45" fill="none">
+    <path d="M40 80V40H80"/><path d="M720 40H760V80"/><path d="M40 920V960H80"/><path d="M720 960H760V920"/>
+    <circle cx="400" cy="400" r="130"/>
+    <path d="M190 860c0-140 94-250 210-250s210 110 210 250"/>
+    <path d="M400 230V570M230 400H570" stroke-opacity=".15" stroke-dasharray="6 8"/>
+  </g>
+  <text x="400" y="424" text-anchor="middle" font-size="64" font-weight="300" fill="#b3bbc1" letter-spacing="-2">MF</text>
+  <text x="400" y="940" text-anchor="middle" font-size="20" fill="#788187" letter-spacing="3">REPLACE WITH PHOTO · 4:5</text>
+</svg>

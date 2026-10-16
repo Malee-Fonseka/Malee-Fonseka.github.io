@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Screenshot placeholder</title>
+  <rect width="1280" height="800" fill="#0d1011"/>
+  <rect x="40" y="40" width="1200" height="720" fill="#101315" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <path d="M40 88.5H1240" stroke="#b3bbc1" stroke-opacity=".2"/>
+  <g fill="#2a3134"><rect x="64" y="58" width="12" height="12"/><rect x="86" y="58" width="12" height="12"/><rect x="108" y="58" width="12" height="12"/></g>
+  <text x="640" y="420" text-anchor="middle" font-size="36" font-weight="600" fill="#d5dadd">screenshot</text>
+  <text x="640" y="468" text-anchor="middle" font-size="18" fill="#3d9f96" letter-spacing="2">16:10 · REPLACE ME</text>
+</svg>

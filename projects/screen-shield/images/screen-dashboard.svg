@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 720" width="360" height="720" font-family="'Fira Code', 'Cascadia Code', Consolas, Menlo, monospace">
+  <title>Dashboard wireframe</title>
+  <rect width="360" height="720" fill="#0d1011"/>
+  <rect x="20" y="10" width="320" height="700" rx="36" fill="#101315" stroke="#b3bbc1" stroke-opacity=".45"/>
+  <rect x="34" y="24" width="292" height="672" rx="26" fill="#0b0d0e" stroke="#b3bbc1" stroke-opacity=".12"/>
+  <rect x="150" y="34" width="60" height="8" rx="4" fill="#1b2023"/>
+
+  <!-- Header + day/week toggle -->
+  <text x="54" y="86" font-size="18" font-weight="600" fill="#e7ebed">Dashboard</text>
+  <rect x="226" y="70" width="80" height="24" fill="none" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <rect x="227" y="71" width="38" height="22" fill="#143936"/>
+  <text x="246" y="86" font-size="10" fill="#66c2b8" text-anchor="middle">day</text>
+  <text x="286" y="86" font-size="10" fill="#788187" text-anchor="middle">week</text>
+
+  <text x="54" y="138" font-size="32" font-weight="600" fill="#e7ebed">3h 42m</text>
+  <text x="54" y="160" font-size="11" fill="#788187">screen time today</text>
+
+  <!-- Hourly bars -->
+  <g fill="#2a3134">
+    <rect x="54" y="250" width="20" height="30"/>
+    <rect x="86" y="228" width="20" height="52"/>
+    <rect x="118" y="262" width="20" height="18"/>
+    <rect x="150" y="206" width="20" height="74"/>
+    <rect x="214" y="220" width="20" height="60"/>
+    <rect x="246" y="240" width="20" height="40"/>
+    <rect x="278" y="196" width="20" height="84"/>
+  </g>
+  <rect x="182" y="184" width="20" height="96" fill="#3d9f96"/>
+  <path d="M54 280.5H306" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <g font-size="9" fill="#788187">
+    <text x="54" y="296">6</text><text x="118" y="296">12</text><text x="182" y="296">18</text><text x="278" y="296">24</text>
+  </g>
+
+  <!-- Category donut -->
+  <g transform="translate(110 370)" fill="none" stroke-width="14">
+    <circle r="40" stroke="#1b2023"/>
+    <circle r="40" stroke="#3d9f96" stroke-dasharray="105 146" transform="rotate(-90)"/>
+    <circle r="40" stroke="#b3bbc1" stroke-opacity=".6" stroke-dasharray="66 185" stroke-dashoffset="-107" transform="rotate(-90)"/>
+    <circle r="40" stroke="#5a6368" stroke-dasharray="44 207" stroke-dashoffset="-175" transform="rotate(-90)"/>
+  </g>
+  <g font-size="11" fill="#9aa3a8">
+    <rect x="180" y="334" width="8" height="8" fill="#3d9f96"/><text x="196" y="342">social</text>
+    <rect x="180" y="356" width="8" height="8" fill="#b3bbc1" fill-opacity=".6"/><text x="196" y="364">video</text>
+    <rect x="180" y="378" width="8" height="8" fill="#5a6368"/><text x="196" y="386">games</text>
+    <rect x="180" y="400" width="8" height="8" fill="#1b2023" stroke="#b3bbc1" stroke-opacity=".3"/><text x="196" y="408">other</text>
+  </g>
+
+  <!-- Top apps -->
+  <text x="54" y="456" font-size="10" fill="#788187" letter-spacing="1.5">TOP APPS</text>
+  <g font-size="11" fill="#9aa3a8">
+    <rect x="54" y="472" width="28" height="28" fill="#1b2023"/>
+    <text x="94" y="484">social app</text><text x="306" y="484" text-anchor="end">1h 12m</text>
+    <rect x="94" y="492" width="212" height="4" fill="#1b2023"/><rect x="94" y="492" width="184" height="4" fill="#3d9f96"/>
+
+    <rect x="54" y="518" width="28" height="28" fill="#1b2023"/>
+    <text x="94" y="530">video app</text><text x="306" y="530" text-anchor="end">58m</text>
+    <rect x="94" y="538" width="212" height="4" fill="#1b2023"/><rect x="94" y="538" width="120" height="4" fill="#b3bbc1" fill-opacity=".6"/>
+
+    <rect x="54" y="564" width="28" height="28" fill="#1b2023"/>
+    <text x="94" y="576">game</text><text x="306" y="576" text-anchor="end">34m</text>
+    <rect x="94" y="584" width="212" height="4" fill="#1b2023"/><rect x="94" y="584" width="70" height="4" fill="#5a6368"/>
+  </g>
+
+  <!-- Tab bar -->
+  <path d="M34 640.5H326" stroke="#b3bbc1" stroke-opacity=".15"/>
+  <g font-size="10" text-anchor="middle">
+    <rect x="86" y="652" width="12" height="12" fill="#3d9f96"/><text x="92" y="680" fill="#66c2b8">home</text>
+    <rect x="174" y="652" width="12" height="12" fill="none" stroke="#788187"/><text x="180" y="680" fill="#788187">simulate</text>
+    <rect x="262" y="652" width="12" height="12" fill="none" stroke="#788187"/><text x="268" y="680" fill="#788187">settings</text>
+  </g>
+</svg>

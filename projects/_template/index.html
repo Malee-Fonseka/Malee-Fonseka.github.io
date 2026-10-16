@@ -1,0 +1,298 @@
+<!doctype html>
+<!--
+  ============================================================================
+  PROJECT CASE STUDY TEMPLATE
+  ============================================================================
+  How to use:
+    1. Copy this whole folder (projects/_template/) to projects/<your-slug>/
+       e.g. projects/weather-station/  (lowercase, hyphens, no spaces)
+    2. Put your images in projects/<your-slug>/images/
+    3. Edit this file: search for "EDIT" and replace each placeholder.
+    4. Add a card for it at the top of projects.html (card template is in a
+       comment there).
+
+  This folder starts with an underscore, so GitHub Pages does not publish it.
+  Your copy (without the underscore) will be published.
+
+  Building blocks available in a section (copy, paste, delete as needed):
+    <p>, <ul>, <ol>, <h3>          normal text, lists, sub-headings
+    .metrics                       a row of key numbers
+    .figure                        image / screenshot / diagram with caption
+    .figure + .figure--pad         padded figure (good for diagrams on white space)
+    .flow                          a step-by-step flow diagram in pure HTML
+    .gallery                       a grid of several figures
+    .callout / .callout--decision  a note or design decision box
+    .table-wrap > table            a data table
+    .code                          a code listing with a filename header
+
+  Section numbers (SEC 01…), figure numbers (FIG. 01…) and contents numbers
+  are all generated automatically, so you can add, remove or reorder freely.
+  Keep the contents list in step with the section ids.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- EDIT: page title and description -->
+  <title>Project Title · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: one sentence describing the project.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Project Title · case study">
+  <meta property="og:description" content="One sentence describing the project.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+        <a href="../../index.html#contact">contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <!-- EDIT: last part of the path is your folder name -->
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">your-slug</span>
+        </nav>
+
+        <!-- EDIT: kicker (type of project / course / client), title, one-paragraph summary -->
+        <p class="cs-kicker rise">Case study · Course, client or context</p>
+        <h1 class="rise" style="--i:1">Project Title</h1>
+        <p class="cs-lede rise" style="--i:2">
+          Two or three sentences that a recruiter could read on their own: what you built,
+          who it is for, and the most interesting thing about how it works.
+        </p>
+
+        <!-- EDIT: project facts. Add or remove <div> rows; they reflow automatically. -->
+        <dl class="cs-meta rise" style="--i:3">
+          <div><dt>year</dt><dd>2026</dd></div>
+          <div><dt>role</dt><dd>What you owned</dd></div>
+          <div><dt>team</dt><dd>Solo / N people</dd></div>
+          <div><dt>timeline</dt><dd>Mon YYYY — Mon YYYY</dd></div>
+          <!-- status options: status--done (complete), status--wip (in progress), status--archived -->
+          <div><dt>status</dt><dd><span class="status status--done">complete</span></dd></div>
+        </dl>
+
+        <!-- EDIT: tech stack. class="key" highlights the main technologies. -->
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">Main tech</li><li>Tech</li><li>Tech</li><li>Tech</li>
+        </ul>
+
+        <!-- EDIT: links. Delete any you do not have. -->
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://example.com" target="_blank" rel="noopener">live demo <span aria-hidden="true">↗</span></a>
+          <a class="btn" href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <!-- EDIT: cover image (1200×675 or any 16:9 image). Also used as the card thumbnail. -->
+      <figure class="figure figure--cover cs-cover framed">
+        <div class="figure__media">
+          <img src="images/cover.svg" alt="EDIT: describe what the image shows" width="1200" height="675">
+        </div>
+        <figcaption>One line about what the cover shows.</figcaption>
+      </figure>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============
+             One <li> per section. Each href must match a section id below. -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#implementation">Implementation</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ SECTION: OVERVIEW ============
+               Every section is <section class="cs-sec" id="…"> with an <h2> first. -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>What the project is and why it exists. Keep it to a short paragraph or two.</p>
+
+            <!-- Key numbers. 2–4 items read best. -->
+            <ul class="metrics">
+              <li><span class="metrics__val">00</span><span class="metrics__label">what this number measures</span></li>
+              <li><span class="metrics__val">00%</span><span class="metrics__label">what this number measures</span></li>
+              <li><span class="metrics__val">0x</span><span class="metrics__label">what this number measures</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ SECTION: PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>Who had the problem, what it cost them, and why existing solutions were not good enough.</p>
+            <ul>
+              <li>A constraint or requirement.</li>
+              <li>Another constraint or requirement.</li>
+            </ul>
+
+            <!-- Note callout -->
+            <aside class="callout">
+              <p class="callout__label">note</p>
+              <p>Use a callout for context the reader should not miss.</p>
+            </aside>
+          </section>
+
+          <!-- ============ SECTION: ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>How the system is put together and why it is shaped that way.</p>
+
+            <!-- Diagram figure. Wrapping the image in <a class="figure__media" href="…">
+                 lets readers open it full size. Export diagrams from draw.io, Excalidraw,
+                 Figma etc. as SVG or PNG. -->
+            <figure class="figure framed">
+              <a class="figure__media" href="images/diagram.svg" target="_blank" rel="noopener">
+                <img src="images/diagram.svg" alt="EDIT: describe the diagram in a sentence" width="960" height="360" loading="lazy">
+              </a>
+              <figcaption>What the diagram shows and what to notice in it.</figcaption>
+            </figure>
+
+            <!-- Design decision callout. Delete the <dl> for a plain paragraph instead. -->
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt><dd>The situation that forced a choice.</dd>
+                <dt>decision</dt><dd>What you chose.</dd>
+                <dt>trade-off</dt><dd>What you gained and what it cost.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ SECTION: IMPLEMENTATION ============ -->
+          <section class="cs-sec" id="implementation">
+            <h2>Implementation</h2>
+            <p>The interesting parts of the build. Use sub-headings to split it up.</p>
+
+            <!-- Flow diagram in pure HTML: one <li> per step, arrows are added automatically.
+                 Add flow__node--key to highlight a step. 3–5 steps fit best. -->
+            <figure class="figure figure--pad framed">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Step one</strong><span>what happens here</span></li>
+                  <li class="flow__node flow__node--key"><strong>Step two</strong><span>the important step</span></li>
+                  <li class="flow__node"><strong>Step three</strong><span>what happens here</span></li>
+                </ol>
+              </div>
+              <figcaption>What the flow shows.</figcaption>
+            </figure>
+
+            <h3>A sub-heading</h3>
+            <p>Explain one component or decision. Inline code looks like <code>this</code>.</p>
+
+            <!-- Code listing. Escape &lt; and &gt; inside code.
+                 Optional colouring: wrap tokens in span.tok-k (keyword), .tok-s (string),
+                 .tok-n (number), .tok-c (comment), .tok-f (function name). -->
+            <figure class="code">
+              <figcaption class="code__file"><span>path/to/file.js</span><span>js</span></figcaption>
+<pre><code><span class="tok-c">// Paste a short, meaningful excerpt.</span>
+<span class="tok-k">function</span> <span class="tok-f">example</span>(input) {
+  <span class="tok-k">return</span> input * <span class="tok-n">2</span>;
+}</code></pre>
+            </figure>
+
+            <!-- Data table -->
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">column</th><th scope="col">column</th><th scope="col">column</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>value</td><td>value</td><td>value</td></tr>
+                  <tr><td>value</td><td>value</td><td>value</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ SECTION: RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>What the project achieved. Numbers, feedback, screenshots of the finished product.</p>
+
+            <!-- Gallery: any number of figures, laid out in a responsive grid -->
+            <div class="gallery">
+              <figure class="figure framed">
+                <a class="figure__media" href="images/screenshot.svg" target="_blank" rel="noopener">
+                  <img src="images/screenshot.svg" alt="EDIT: describe the screenshot" width="1280" height="800" loading="lazy">
+                </a>
+                <figcaption>Caption for this screenshot.</figcaption>
+              </figure>
+              <figure class="figure framed">
+                <a class="figure__media" href="images/screenshot.svg" target="_blank" rel="noopener">
+                  <img src="images/screenshot.svg" alt="EDIT: describe the screenshot" width="1280" height="800" loading="lazy">
+                </a>
+                <figcaption>Caption for this screenshot.</figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <!-- ============ SECTION: LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li>A lesson, and how it changed the way you work.</li>
+              <li>Something you would do differently next time.</li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <dl class="titleblock">
+        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
+        <div><dt>sheet</dt><dd>02 / case study</dd></div>
+        <div><dt>rev</dt><dd>2026.10</dd></div>
+        <div><dt>medium</dt><dd>html + css</dd></div>
+      </dl>
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:your.email@example.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

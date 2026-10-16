@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" font-family="'Fira Code', 'Cascadia Code', Consolas, Menlo, monospace">
+  <title>Screen-Shield cover</title>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#b3bbc1" stroke-opacity=".06"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="675" fill="#0e1214"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Crop marks -->
+  <g stroke="#b3bbc1" stroke-opacity=".5" fill="none">
+    <path d="M28 52V28H52"/><path d="M1148 28H1172V52"/>
+    <path d="M28 623V647H52"/><path d="M1148 647H1172V623"/>
+  </g>
+
+  <!-- Label -->
+  <text x="72" y="96" font-size="16" fill="#3d9f96" letter-spacing="3">P-01 / SCREEN-SHIELD</text>
+  <text x="72" y="126" font-size="14" fill="#788187">mobile · gateway · 3 services · 2 databases</text>
+
+  <!-- Backend sketch -->
+  <g fill="none" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="300" y="236" width="138" height="56"/>
+    <rect x="300" y="326" width="138" height="56"/>
+    <rect x="300" y="416" width="138" height="56"/>
+    <path d="M500 270v52a52 8 0 0 0 104 0v-52"/>
+    <ellipse cx="552" cy="270" rx="52" ry="8"/>
+    <path d="M500 420v52a52 8 0 0 0 104 0v-52"/>
+    <ellipse cx="552" cy="420" rx="52" ry="8"/>
+  </g>
+  <rect x="80" y="320" width="150" height="68" fill="#0f2523" stroke="#3d9f96"/>
+  <g fill="none" stroke="#3d9f96" stroke-opacity=".8">
+    <path d="M230 354H266V264H300"/>
+    <path d="M230 354H300"/>
+    <path d="M266 354V444H300"/>
+  </g>
+  <g fill="none" stroke="#b3bbc1" stroke-opacity=".5">
+    <path d="M438 264H470V296H500"/>
+    <path d="M438 354H470V306H500"/>
+    <path d="M438 444H500"/>
+    <path d="M369 382V416" stroke-dasharray="4 4"/>
+  </g>
+  <g font-size="13" fill="#9aa3a8">
+    <text x="96" y="350" fill="#e7ebed" font-weight="600">gateway</text>
+    <text x="96" y="372" fill="#66c2b8">:8080</text>
+    <text x="316" y="270">auth</text>
+    <text x="316" y="360">parental</text>
+    <text x="316" y="450">usage</text>
+    <text x="552" y="304" text-anchor="middle">pg</text>
+    <text x="552" y="454" text-anchor="middle">mongo</text>
+  </g>
+
+  <!-- Dimension line -->
+  <g stroke="#b3bbc1" stroke-opacity=".45">
+    <path d="M80 528H604"/><path d="M80 520V536"/><path d="M604 520V536"/>
+  </g>
+  <rect x="262" y="518" width="160" height="20" fill="#0e1214"/>
+  <text x="342" y="533" font-size="13" fill="#788187" text-anchor="middle">docker compose up</text>
+
+  <!-- Phone -->
+  <g transform="translate(770 62)">
+    <rect width="290" height="552" rx="36" fill="#101315" stroke="#b3bbc1" stroke-opacity=".5"/>
+    <rect x="14" y="14" width="262" height="524" rx="26" fill="#0b0d0e" stroke="#b3bbc1" stroke-opacity=".12"/>
+    <rect x="115" y="26" width="60" height="8" rx="4" fill="#1b2023"/>
+
+    <text x="36" y="72" font-size="12" fill="#788187">today · අද</text>
+    <text x="36" y="112" font-size="34" font-weight="600" fill="#e7ebed">3h 42m</text>
+    <text x="36" y="134" font-size="11" fill="#788187">screen time</text>
+
+    <!-- Week bars -->
+    <g fill="#2a3134">
+      <rect x="36" y="206" width="20" height="44"/>
+      <rect x="68" y="182" width="20" height="68"/>
+      <rect x="100" y="220" width="20" height="30"/>
+      <rect x="132" y="170" width="20" height="80"/>
+      <rect x="164" y="196" width="20" height="54"/>
+      <rect x="196" y="160" width="20" height="90"/>
+    </g>
+    <rect x="228" y="176" width="20" height="74" fill="#3d9f96"/>
+    <path d="M36 250.5H254" stroke="#b3bbc1" stroke-opacity=".3"/>
+
+    <!-- Category donut -->
+    <g transform="translate(80 320)" fill="none" stroke-width="14">
+      <circle r="34" stroke="#1b2023"/>
+      <circle r="34" stroke="#3d9f96" stroke-dasharray="90 124" transform="rotate(-90)"/>
+      <circle r="34" stroke="#b3bbc1" stroke-opacity=".6" stroke-dasharray="54 160" stroke-dashoffset="-92" transform="rotate(-90)"/>
+      <circle r="34" stroke="#5a6368" stroke-dasharray="38 176" stroke-dashoffset="-148" transform="rotate(-90)"/>
+    </g>
+    <g font-size="11" fill="#9aa3a8">
+      <rect x="140" y="292" width="8" height="8" fill="#3d9f96"/><text x="156" y="300">social</text>
+      <rect x="140" y="314" width="8" height="8" fill="#b3bbc1" fill-opacity=".6"/><text x="156" y="322">video</text>
+      <rect x="140" y="336" width="8" height="8" fill="#5a6368"/><text x="156" y="344">games</text>
+    </g>
+
+    <!-- App rows -->
+    <g font-size="11" fill="#9aa3a8">
+      <rect x="36" y="392" width="22" height="22" fill="#1b2023"/>
+      <text x="68" y="402">social app</text>
+      <rect x="68" y="408" width="186" height="4" fill="#1b2023"/>
+      <rect x="68" y="408" width="160" height="4" fill="#3d9f96"/>
+      <rect x="36" y="436" width="22" height="22" fill="#1b2023"/>
+      <text x="68" y="446">video app</text>
+      <rect x="68" y="452" width="186" height="4" fill="#1b2023"/>
+      <rect x="68" y="452" width="98" height="4" fill="#b3bbc1" fill-opacity=".6"/>
+      <rect x="36" y="480" width="22" height="22" fill="#1b2023"/>
+      <text x="68" y="490">game</text>
+      <rect x="68" y="496" width="186" height="4" fill="#1b2023"/>
+      <rect x="68" y="496" width="54" height="4" fill="#5a6368"/>
+    </g>
+  </g>
+</svg>

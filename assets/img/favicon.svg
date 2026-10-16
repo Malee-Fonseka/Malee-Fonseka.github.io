@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#0b0d0e"/>
+  <rect x="5" y="5" width="50" height="50" fill="none" stroke="#b3bbc1" stroke-width="2"/>
+  <rect x="50" y="50" width="11" height="11" fill="#3d9f96"/>
+  <text x="30" y="39" text-anchor="middle" font-family="'Fira Code', Consolas, monospace" font-size="22" font-weight="700" fill="#d5dadd">MF</text>
+</svg>

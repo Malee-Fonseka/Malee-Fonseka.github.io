@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Screen-Shield · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: Screen-Shield, a bilingual Sinhala/English screen-time app built as a microservices prototype with Expo, Node.js, PostgreSQL and MongoDB.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Screen-Shield · case study">
+  <meta property="og:description" content="A bilingual screen-time app built as a microservices prototype.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+        <a href="../../index.html#contact">contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">screen-shield</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · EC8208 Software Architecture</p>
+        <h1 class="rise" style="--i:1">Screen-Shield</h1>
+        <p class="cs-lede rise" style="--i:2">
+          A bilingual (Sinhala / English) screen-time and digital-wellbeing app for Sri Lankan users,
+          built by a team of six as a microservices prototype: an Expo mobile client in front of an
+          API gateway, three Node.js services and two databases, all started with one Docker Compose command.
+        </p>
+
+        <dl class="cs-meta rise" style="--i:3">
+          <div><dt>year</dt><dd>2026</dd></div>
+          <!-- EDIT: describe the part you owned -->
+          <div><dt>role</dt><dd>Your role on the team</dd></div>
+          <div><dt>team</dt><dd>6 engineers</dd></div>
+          <div><dt>timeline</dt><dd>Jul 2026 — present</dd></div>
+          <div><dt>status</dt><dd><span class="status status--wip">in progress</span></dd></div>
+        </dl>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">React Native</li><li class="key">Node.js</li><li>Expo Router</li><li>TypeScript</li>
+          <li>TanStack Query</li><li>Zustand</li><li>i18next</li><li>Express</li><li>JWT</li>
+          <li>PostgreSQL 16</li><li>MongoDB 7</li><li>Docker Compose</li>
+        </ul>
+
+        <!-- EDIT: the repository belongs to a teammate. Remove this link if it is private. -->
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn" href="https://github.com/Akila-Piyumantha/Screen-Shield" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <figure class="figure figure--cover cs-cover framed">
+        <div class="figure__media">
+          <img src="images/cover.svg" alt="Illustration of the Screen-Shield dashboard beside a sketch of its backend services" width="1200" height="675">
+        </div>
+        <figcaption>Prototype dashboard and the containers behind it.</figcaption>
+      </figure>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#requirements">Requirements</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#implementation">Implementation</a></li>
+              <li><a href="#screens">Screens</a></li>
+              <li><a href="#challenges">Challenges</a></li>
+              <li><a href="#status">Status &amp; next steps</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              Screen-Shield helps people see where their phone time goes and take control of it.
+              Users get a dashboard of their daily and weekly usage and can set a daily limit for any app;
+              parents can manage limits for their children. Every screen is available in both Sinhala and English
+              and the language can be switched at any time.
+            </p>
+            <p>
+              It started as the design assignment for EC8208 Software Architecture at the University of Ruhuna:
+              specify a real system, justify its architecture, then build a working prototype. The prototype
+              covers three features end to end: <strong>authentication</strong>, <strong>usage tracking</strong>
+              and <strong>parental limits</strong>.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">4</span><span class="metrics__label">Node.js services, gateway included</span></li>
+              <li><span class="metrics__val">2</span><span class="metrics__label">databases, each matched to its workload</span></li>
+              <li><span class="metrics__val">90</span><span class="metrics__label">UI strings, in both Sinhala and English</span></li>
+              <li><span class="metrics__val">6</span><span class="metrics__label">engineers on one repository</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>
+              Free tools such as Google Family Link and Apple Screen Time work at a basic level, but neither
+              offers a Sinhala interface or was designed around Sri Lankan users. Premium alternatives like
+              Qustodio and Mobicip do more, but their USD pricing puts them out of reach for most local
+              households, and their English-only, feature-dense interfaces are hard going for parents who are
+              not particularly technical.
+            </p>
+            <p>Our design report boiled the gap down to five pain points:</p>
+            <ul>
+              <li>No Sinhala-language digital-wellbeing app exists on either app store.</li>
+              <li>The free tools offer no Sinhala UI, no LKR pricing and no local context.</li>
+              <li>The premium apps are priced in USD.</li>
+              <li>Parents have little visibility into how their children use Android devices.</li>
+              <li>Existing apps are too complex for many parents, particularly those aged 40–55.</li>
+            </ul>
+          </section>
+
+          <!-- ============ 03 REQUIREMENTS ============ -->
+          <section class="cs-sec" id="requirements">
+            <h2>Requirements</h2>
+            <p>
+              We wrote functional and non-functional requirements before choosing an architecture, so every
+              structural decision could be traced back to one. The non-functional requirements did most of the work:
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">id</th><th scope="col">quality</th><th scope="col">target</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>NFR-01</td><td>Performance</td><td>API p95 under 300 ms; dashboard loads in 2 s on a 2 GB-RAM Android phone</td></tr>
+                  <tr><td>NFR-02</td><td>Scalability</td><td>10,000 concurrent users at launch, with a path to 50,000 and no redesign</td></tr>
+                  <tr><td>NFR-03</td><td>Security</td><td>TLS 1.3 in transit, AES-256 at rest, PINs stored as bcrypt hashes (cost 12)</td></tr>
+                  <tr><td>NFR-06</td><td>Maintainability</td><td>SOLID design, at least 70% unit-test coverage on business logic</td></tr>
+                  <tr><td>NFR-07</td><td>Reliability</td><td>No notification events lost</td></tr>
+                  <tr><td>NFR-08</td><td>Localisation</td><td>Full Sinhala UI on Android API 24 and above</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              One functional requirement shaped the limits feature directly: <strong>FR-09</strong>, warn the
+              user five minutes before an app reaches its daily limit.
+            </p>
+          </section>
+
+          <!-- ============ 04 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              We scored five architecture styles against those requirements. A monolith failed NFR-02 because
+              its modules could not scale independently: a spike in usage tracking during exam-season evenings
+              would mean scaling authentication and payments with it. Microservices met NFR-01, 02, 04 and 06,
+              at the price of more operational complexity.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision record · accepted</p>
+              <dl>
+                <dt>context</dt>
+                <dd>Eight feature modules (auth, usage, analytics, parental controls, notifications, gamification, payments, content filtering) with different scaling, latency and availability needs.</dd>
+                <dt>decision</dt>
+                <dd>Ship each module as an independently deployable service in its own container: REST for synchronous calls, message queues for asynchronous ones.</dd>
+                <dt>trade-off</dt>
+                <dd>Independent scaling, fault isolation and release cycles, in exchange for more DevOps work, distributed tracing and service-to-service auth.</dd>
+              </dl>
+            </aside>
+
+            <p>
+              Two supporting choices followed. An <strong>event-driven layer</strong> with dead-letter queues
+              carries notifications, so a consumer outage cannot lose events (NFR-07). And persistence is
+              <strong>polyglot</strong>: accounts and limit rules live in PostgreSQL for its transactional
+              guarantees, while the write-heavy stream of usage events goes to MongoDB.
+            </p>
+
+            <figure class="figure framed">
+              <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
+                <img src="images/architecture.svg" alt="Architecture diagram: the Expo app sends HTTP requests with a JWT to the API gateway on port 8080, which routes to the auth service (4001), usage service (4002) and parental service (4003). Auth and parental use PostgreSQL 16; usage uses MongoDB 7. The parental service calls the usage service over REST. Everything except the app runs on a Docker Compose network." width="960" height="500" loading="lazy">
+              </a>
+              <figcaption>Runtime view of the prototype. Every request enters through the gateway; the parental service asks the usage service for today's minutes before deciding a limit's state.</figcaption>
+            </figure>
+
+            <h3>Design target vs. prototype</h3>
+            <p>
+              The full design targets AWS: ECS Fargate for the containers, API Gateway in front, SQS queues,
+              Lambda for scheduled weekly reports, and managed PostgreSQL and MongoDB. For the course prototype
+              we kept the same service boundaries but run everything locally with a single
+              <code>docker compose up</code>: the gateway, three services and both databases on a private
+              network, with health checks on the databases and seed data for demos.
+            </p>
+          </section>
+
+          <!-- ============ 05 IMPLEMENTATION ============ -->
+          <section class="cs-sec" id="implementation">
+            <h2>Implementation</h2>
+            <p>Every feature follows the same request path:</p>
+
+            <figure class="figure figure--pad framed">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Expo app</strong><span>sends the request with <code>Bearer &lt;jwt&gt;</code></span></li>
+                  <li class="flow__node flow__node--key"><strong>API gateway</strong><span>verifies the JWT, injects <code>X-User-Id</code> and <code>X-User-Role</code></span></li>
+                  <li class="flow__node"><strong>Service</strong><span>trusts gateway headers, validates input with Joi</span></li>
+                  <li class="flow__node"><strong>Database</strong><span>PostgreSQL or MongoDB, owned by one service</span></li>
+                </ol>
+              </div>
+              <figcaption>Request path. Services never see the raw token, so authentication logic lives in exactly one place.</figcaption>
+            </figure>
+
+            <h3>The gateway as the single trust boundary</h3>
+            <p>
+              The gateway verifies the token once and forwards only the user's id and role as headers. That keeps
+              JWT handling out of every downstream service, and because the <code>Authorization</code> header is
+              stripped on the way through, a token never travels further than it needs to.
+            </p>
+
+            <h3>Isolating the limit rule</h3>
+            <p>
+              The parental service decides whether an app is fine, close to its limit, or over it. The rule is
+              small, but it is the part most likely to change, so it lives in one pure function with its
+              thresholds in a frozen object. Changing what "warning" means touches this file and nothing else.
+            </p>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>services/parental-service/src/domain/limitState.js</span><span>js · excerpt</span></figcaption>
+<pre><code><span class="tok-c">// Warning starts at 80% of the limit or when 5 minutes or fewer remain (FR-09).</span>
+<span class="tok-k">const</span> THRESHOLDS = Object.<span class="tok-f">freeze</span>({
+  warning: <span class="tok-n">0.8</span>,
+  exceeded: <span class="tok-n">1</span>,
+  warningMinutesLeft: <span class="tok-n">5</span>,
+});
+
+<span class="tok-k">function</span> <span class="tok-f">computeLimitState</span>(usedMinutes, dailyLimitMinutes) {
+  <span class="tok-k">if</span> (!(dailyLimitMinutes &gt; <span class="tok-n">0</span>)) <span class="tok-k">return</span> <span class="tok-s">'ok'</span>;
+  <span class="tok-k">const</span> ratio = usedMinutes / dailyLimitMinutes;
+  <span class="tok-k">if</span> (ratio &gt;= THRESHOLDS.exceeded) <span class="tok-k">return</span> <span class="tok-s">'exceeded'</span>;
+  <span class="tok-k">if</span> (ratio &gt;= THRESHOLDS.warning) <span class="tok-k">return</span> <span class="tok-s">'warning'</span>;
+  <span class="tok-k">if</span> (dailyLimitMinutes - usedMinutes &lt;= THRESHOLDS.warningMinutesLeft) <span class="tok-k">return</span> <span class="tok-s">'warning'</span>;
+  <span class="tok-k">return</span> <span class="tok-s">'ok'</span>;
+}</code></pre>
+            </figure>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">state</th><th scope="col">when</th><th scope="col">what the user sees</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>ok</td><td>Under 80% used and more than 5 minutes left</td><td>Progress bar only</td></tr>
+                  <tr><td>warning</td><td>80% used, or 5 minutes or fewer left</td><td>Warning banner; a notification when the state changes</td></tr>
+                  <tr><td>exceeded</td><td>100% of the daily limit used</td><td>Exceeded banner; a notification when the state changes</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Mobile client</h3>
+            <ul>
+              <li><strong>Expo Router</strong> for file-based navigation: login and register, a tab bar (dashboard, simulator, settings) and a detail screen per app.</li>
+              <li><strong>TanStack Query</strong> for server state (caching, pull-to-refresh, retries) and <strong>Zustand</strong> for session and UI state.</li>
+              <li>An Axios client that attaches the JWT and normalises every error response into one shape.</li>
+              <li><strong>i18next</strong> with English and Sinhala resource files, 90 keys each, switchable at runtime from settings.</li>
+              <li>A usage simulator and a mock API that mirrors the REST contract, so screens could be built before the backend existed.</li>
+            </ul>
+          </section>
+
+          <!-- ============ 06 SCREENS ============ -->
+          <section class="cs-sec" id="screens">
+            <h2>Screens</h2>
+            <p>
+              The dashboard shows total screen time with a day/week toggle, an hourly or daily chart, a category
+              breakdown and the top apps with progress against their limits.
+            </p>
+
+            <!-- EDIT: these are wireframes. Swap in real screenshots from the running app. -->
+            <div class="gallery">
+              <figure class="figure framed">
+                <a class="figure__media" href="images/screen-dashboard.svg" target="_blank" rel="noopener">
+                  <img src="images/screen-dashboard.svg" alt="Wireframe of the dashboard: total screen time, bar chart, category donut and top apps" width="360" height="720" loading="lazy">
+                </a>
+                <figcaption>Dashboard (wireframe).</figcaption>
+              </figure>
+              <figure class="figure framed">
+                <a class="figure__media" href="images/screen-detail.svg" target="_blank" rel="noopener">
+                  <img src="images/screen-detail.svg" alt="Wireframe of an app detail screen showing usage against a daily limit with a warning banner" width="360" height="720" loading="lazy">
+                </a>
+                <figcaption>App detail with a limit warning (wireframe).</figcaption>
+              </figure>
+              <figure class="figure framed">
+                <a class="figure__media" href="images/screen-settings.svg" target="_blank" rel="noopener">
+                  <img src="images/screen-settings.svg" alt="Wireframe of the settings screen with an English and Sinhala language switch and a PIN lock toggle" width="360" height="720" loading="lazy">
+                </a>
+                <figcaption>Settings: language and PIN lock (wireframe).</figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <!-- ============ 07 CHALLENGES ============ -->
+          <section class="cs-sec" id="challenges">
+            <h2>Challenges</h2>
+            <p>The hardest problems were not inside any one service but between them.</p>
+            <ul>
+              <li>
+                <strong>Contract drift.</strong> We froze a REST contract early, yet a service built on its own
+                branch drifted from it, and the mobile client broke against the real responses. Contract tests
+                in CI would have caught this at merge time instead of at integration.
+              </li>
+              <li>
+                <strong>One component, every feature.</strong> Every request passes through the gateway, so a
+                single routing bug there (dropping the <code>/api</code> prefix) blocked all three services at once.
+                That is the cost of a single entry point, and why it deserves the most tests.
+              </li>
+              <li>
+                <strong>Integrating six branches.</strong> With each person owning a service or a set of screens,
+                merges regularly surfaced problems no single branch had. Regular status reports pinned to a commit,
+                listing what works, what is broken and why, kept the team agreed on what to fix first.
+              </li>
+            </ul>
+          </section>
+
+          <!-- ============ 08 STATUS ============ -->
+          <section class="cs-sec" id="status">
+            <h2>Status &amp; next steps</h2>
+            <p>
+              All three services and the app's main screens are built, but the system does not yet run end to end.
+              Remaining work before the prototype demo:
+            </p>
+            <ol>
+              <li>Fix gateway routing so requests reach the services.</li>
+              <li>Align the usage service's responses with the agreed contract.</li>
+              <li>Add the PIN backend, the limits UI and persistent sign-in.</li>
+              <li>Add unit tests towards the 70% coverage target in NFR-06.</li>
+            </ol>
+          </section>
+
+          <!-- ============ 09 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <!-- EDIT: make these your own reflections -->
+            <ul>
+              <li>Write the contract first, then test against it continuously. A frozen document alone does not keep services in line.</li>
+              <li>Keep volatile business rules in small, pure modules so they can change without touching routes or controllers.</li>
+              <li>A gateway simplifies every service behind it, but it becomes the most critical component in the system.</li>
+              <li>Decision records make it easy to explain why a system looks the way it does, long after the decision was made.</li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <dl class="titleblock">
+        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
+        <div><dt>sheet</dt><dd>02 / case study</dd></div>
+        <div><dt>rev</dt><dd>2026.10</dd></div>
+        <div><dt>medium</dt><dd>html + css</dd></div>
+      </dl>
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:your.email@example.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
