@@ -71,9 +71,11 @@
 
       <a class="scroll-cue" href="#contact" aria-label="Scroll to Get in touch">scroll <span aria-hidden="true">↓</span></a>
 
-      <!-- Landing animation label and switch. Hidden until assets/js/hero-animation.js starts an animation. -->
-      <p class="anim-label" aria-live="polite" aria-atomic="true" hidden>now playing · <span class="anim-label__name"></span></p>
-      <button class="anim-switch" type="button" aria-label="Switch background animation" hidden><span aria-hidden="true">↻</span> switch</button>
+      <!-- Landing animation switch and label, top left. Hidden until assets/js/hero-animation.js starts an animation. -->
+      <div class="anim-controls">
+        <button class="anim-switch" type="button" aria-label="Switch background animation" hidden><span aria-hidden="true">↻</span> switch</button>
+        <p class="anim-label" aria-live="polite" aria-atomic="true" hidden><span class="anim-label__key">now playing · </span><span class="anim-label__name"></span></p>
+      </div>
     </section>
 
     <!-- ============ CONTACT ============ -->

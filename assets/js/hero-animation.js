@@ -2,8 +2,8 @@
   Landing animation for the home page hero.
 
   One animation plays behind the hero card. Each visit picks a different one
-  from the previous visit, the button in the lower-right corner switches to the
-  next, and the label in the upper-left corner names the one that is playing.
+  from the previous visit. At the top left of the hero, the switch button moves
+  to the next animation and the label beside it names the one that is playing.
 
   Each animation lives in its own file next to this one and is loaded the first
   time it is shown. A file registers a mount function:

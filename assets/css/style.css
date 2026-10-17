@@ -522,6 +522,11 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   0%, 100% { transform: none; }
   50%      { transform: translateY(3px); }
 }
+/* A crisp ring that grows and fades: spread only, no blur, so it stays matte */
+@keyframes attention {
+  0%   { box-shadow: 0 0 0 0 rgba(102, 194, 184, 0.6); }
+  100% { box-shadow: 0 0 0 10px rgba(102, 194, 184, 0); }
+}
 
 
 /* 5. Landing page
@@ -590,38 +595,48 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   --tank-dot-light: #4b6e52;    /* a dot at the peak of its blink */
 }
 
-/* "now playing" label (upper left) and switch button (lower right), lined
-   up with the edges of the page content */
-.anim-label,
-.anim-switch {
+/* Switch button and "now playing" label: one row at the top left of the
+   hero, one gutter in, so they line up with the logo above */
+.anim-controls {
   position: absolute;
+  top: 16px;
+  left: var(--gutter);
+  right: var(--gutter);         /* lets the row wrap rather than overflow */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.anim-switch,
+.anim-label {
   font-size: var(--fs-xs);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-faint);
 }
-.anim-label {
-  top: 16px;
-  left: max(var(--gutter), calc((100% - var(--maxw)) / 2));
-  padding: 4px 8px;
-  margin-left: -8px;            /* text lines up with the card edge */
-  background: var(--bg);
-}
-.anim-label__name { color: var(--text-dim); }
+
+/* The switch is the only way to the other animations, so it wears the teal
+   accent and pulses a few times after it appears, then stays still */
 .anim-switch {
-  bottom: 20px;
-  right: max(var(--gutter), calc((100% - var(--maxw)) / 2));
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  border: 1px solid var(--line-2);
-  background: var(--bg-1);
+  border: 1px solid var(--teal);
+  background: var(--teal-fill);
+  color: var(--text-head);
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  animation: attention 1.6s ease-out 1s 3;
 }
-.anim-switch:hover { color: var(--teal-hi); border-color: var(--teal); }
+.anim-switch:hover { background: #1a4744; color: #fff; }
+
+.anim-label {
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--text-faint);
+}
+.anim-label__name { color: var(--text-dim); }
 
 .hero__grid {
   display: grid;
@@ -1324,6 +1339,16 @@ a.figure__media:focus-visible::after { opacity: 1; }
 
 @media (max-width: 560px) {
   .brand__name { display: none; }
+
+  /* Just the animation's name beside the switch; "now playing" is still read out */
+  .anim-label__key {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 
   /* The hero card becomes a full-width band, giving the text the whole width */
   .hero__card {
