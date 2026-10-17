@@ -169,6 +169,11 @@ hr { border: 0; border-top: 1px solid var(--line); }
   padding-inline: var(--gutter);
 }
 
+/* The header and footer reach the screen edges (one gutter in) at every
+   width. Page content stays in the centred column above. */
+.site-header .container,
+.site-footer .container { max-width: none; }
+
 .section { padding-block: clamp(56px, 9vw, 104px); }
 .section--tight,
 .section + .section { padding-top: 0; }
