@@ -194,7 +194,7 @@ hr { border: 0; border-top: 1px solid var(--line); }
 }
 
 /* Section snapping, opted into per page with <html class="snap">.
-   Only home and about use it; long reading pages scroll freely.
+   Only the home page uses it; every other page scrolls freely.
    The footer snap point keeps it reachable even if it wraps to two lines. */
 html.snap {
   scroll-snap-type: y mandatory;
@@ -532,18 +532,23 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 /* 5. Landing page
    ========================================================================== */
 
-/* The hero is also a .screen. The extra bottom padding keeps the scroll cue
-   clear of the buttons. isolation keeps the animation canvas (z-index: -1)
-   inside the hero instead of behind the page. */
+/* The hero is also a .screen, and it must never be taller than one: a
+   taller hero becomes something you scroll inside, and one scroll stops
+   short of Get in touch. So its spacing scales with the screen's height
+   (svh) as well as its width. The top padding keeps the card clear of the
+   switch row, the bottom padding clear of the scroll cue. isolation keeps
+   the animation canvas (z-index: -1) inside the hero. */
 .hero {
+  --hero-gap: clamp(10px, calc(4.2svh - 14px), 24px);
   position: relative;
   isolation: isolate;
-  padding-block: clamp(56px, 5vw, 72px) clamp(64px, 6vw, 80px);
+  padding-block: clamp(54px, min(5vw, 8svh), 72px) clamp(62px, min(6vw, 9svh), 80px);
 }
 
 /* Solid card holding the hero text, in front of the animation */
 .hero__card {
-  padding: clamp(24px, 2.5vw, 36px);
+  container-type: inline-size;   /* lets the name size itself to the card (cqi) */
+  padding: clamp(20px, min(2.5vw, calc(6svh - 18px)), 36px);
   background: var(--bg-1);
   border: 1px solid var(--line);
 }
@@ -649,7 +654,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: var(--hero-gap);
   font-size: var(--fs-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -657,7 +662,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 
 .hero__name {
-  font-size: clamp(2.6rem, 7vw, 4.8rem);
+  font-size: clamp(2.2rem, min(max(7vw, 2.6rem), 9svh), 4.8rem);
   line-height: 1;
   letter-spacing: -0.045em;
 }
@@ -665,15 +670,15 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .hero__name .last { font-weight: 300; color: var(--silver); }
 
 .hero__role {
-  margin-top: 24px;
+  margin-top: var(--hero-gap);
   font-size: var(--fs-md);
   color: var(--text);
 }
 .hero__role::before { content: "→ "; color: var(--teal); }
 
-.hero__intro { margin-top: 14px; max-width: 54ch; color: var(--text-dim); }
+.hero__intro { margin-top: calc(var(--hero-gap) * 0.6); max-width: 60ch; color: var(--text-dim); }
 
-.hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: calc(var(--hero-gap) * 1.33); }
 
 /* .hero__filler is the right-hand slot reserved for the landing filler
    (backlog V11-10). While empty it holds the column on wide screens and is
@@ -1353,14 +1358,40 @@ a.figure__media:focus-visible::after { opacity: 1; }
   /* The hero card becomes a full-width band, giving the text the whole width */
   .hero__card {
     margin-inline: calc(-1 * var(--gutter));
-    padding: 28px var(--gutter);
+    padding: clamp(20px, 3.4svh, 28px) var(--gutter);
     border-inline: 0;
   }
+
+  /* Phones with the browser's bars showing are short, so the hero's text
+     scales with the screen's height too, and the buttons share one row */
+  .hero { --hero-gap: clamp(10px, 2.2svh, 20px); }
+  .hero__name { font-size: clamp(2.2rem, 5.4svh, 2.6rem); }
+  .hero__role { font-size: clamp(var(--fs-sm), 2.1svh, var(--fs-md)); }
+  .hero__intro { font-size: clamp(14px, 2svh, var(--fs-base)); line-height: 1.6; }
+  .hero__ctas { gap: 6px; }
+  .hero__ctas .btn { gap: 6px; padding: 9px; font-size: 0.72rem; }
   .hero__card::before,
   .hero__card::after { display: none; }
 
   .ledger__k { flex-basis: 7ch; }
   .ledger__leader { display: none; }
+}
+
+/* Wide but short screens, such as laptops at 125–150% display scaling: the
+   name goes on one line, saving a line of the largest text. cqi caps the size
+   by the card's width (the one-line name is about 8.9em wide), so it can't
+   overflow. */
+@media (min-width: 901px) and (max-height: 760px) {
+  .hero__name > span { display: inline; }
+  .hero__name { font-size: clamp(2.2rem, min(10.5cqi, 9svh), 4.8rem); }
+  .hero__intro { line-height: 1.65; }
+}
+
+/* Very short phones, such as an iPhone SE with Safari's bars showing: even
+   scaled down, the card can't fit with its intro, so the intro is hidden here
+   only (decision Q6). The same introduction is on the about page. */
+@media (max-width: 560px) and (max-height: 620px) {
+  .hero__intro { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
