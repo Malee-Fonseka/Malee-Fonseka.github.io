@@ -1,20 +1,24 @@
 # Malee-Fonseka.github.io
 
 My personal portfolio: an introduction, in-depth project case studies, and my education, experience and skills.
-It's plain HTML and CSS with no build step and no JavaScript, hosted on GitHub Pages.
+It's plain HTML and CSS with no build step, hosted on GitHub Pages. The only JavaScript is the home page's background animation, and every page still works without it.
 
 **Live site:** https://malee-fonseka.github.io/
 
 ## Structure
 
 ```
-index.html                 Landing page: introduction and contact links
+index.html                 Home: introduction card over the animation, then Get in touch
 projects.html              Project index: one card per project
-about.html                 Education, experience, skills, certifications
+about.html                 Summary, then education, experience and skills
 404.html                   Shown by GitHub Pages for missing URLs
 assets/
   css/style.css            The only stylesheet; colours and fonts are tokens at the top
-  img/                     Favicon and portrait
+  js/hero-animation.js     Picks, loads and switches the home page animation
+  js/anim-fish-tank.js     The three animations, each loaded only when shown
+  js/anim-murmuration.js
+  js/anim-conway.js
+  img/                     Favicon, and a portrait placeholder (hidden for now)
 projects/
   _template/               Starter for new case studies (not published)
     index.html
@@ -49,6 +53,29 @@ Section numbers (`SEC 01`), figure numbers (`FIG. 01`), contents numbers and car
 
 For diagrams, draw them in [draw.io](https://app.diagrams.net/), [Excalidraw](https://excalidraw.com/) or Figma and export them as SVG or PNG. A dark background (`#0d1011`) with light lines matches the site best.
 
+## The home page
+
+### Background animation
+
+The fish tank plays behind the introduction card every time the page loads. The **switch** button at the top left moves on to the murmuration, then Conway's Game of Life, then back to the fish tank, and the label beside it names the one that's playing. Nothing is stored in the browser.
+
+- **Order and default:** the `ANIMATIONS` list at the top of `assets/js/hero-animation.js`. The first entry plays on load, and the switch steps through the rest in order.
+- **Colours:** the custom properties on `.hero__anim` in `style.css`. The five `--life-*` colours are shared by Conway and the murmuration; the `--tank-*` colours are the fish tank's water and dots. The fish colourways are in `FISH_STYLES` in `anim-fish-tank.js`.
+- **The original animations** in `docs/animations/` no longer feed the site. Edit the `assets/js/anim-*.js` files instead.
+- **Adding an animation:** write a file like the others that registers `window.heroAnimationRegistry[id] = mount`, where `mount(canvas, { visibleMargin })` draws into the canvas and returns a `destroy()` function. Then add a line to `ANIMATIONS`.
+
+Each animation pauses while it's off-screen, including when Get in touch is in view. Visitors who prefer reduced motion get a still frame, and without JavaScript the hero shows its normal background.
+
+### Fitting one screen
+
+The home page snaps between two full-screen sections, the introduction and Get in touch. That only takes one scroll if the introduction is never taller than the screen; if it is, the browser lets you scroll *inside* it, and one scroll stops short. So its spacing and text sizes scale with the screen's height:
+
+- **Wide but short screens** (laptops at 125–150% display scaling) put the name on one line.
+- **Phones** use slightly smaller text and buttons.
+- **Very short phones** (620px tall or less) hide the intro paragraph; the same introduction is on the about page.
+
+If you add or lengthen anything in the introduction card, check that it still fits at about 1280×590 (a 1920×1080 laptop at 150% scaling) and on a phone. In the browser's developer tools, the introduction should be no taller than the window minus the 60px header.
+
 ## Previewing locally
 
 Open `index.html` in a browser, or run a local server from the repository root:
@@ -73,5 +100,8 @@ GitHub Pages runs its default Jekyll build, which skips folders that start with 
 
 - **Colours, fonts and spacing:** edit the tokens in section 1 of `assets/css/style.css`. Every page uses them.
 - **Font:** Fira Code from Google Fonts, set at weight 450 to match Fira Code Retina.
-- **Header and footer:** these are repeated in every HTML file, because there is no templating. If you change a nav link, update it in each page, including `projects/_template/index.html`.
+- **Header and footer:** both reach the screen edges on every page, while page content stays in the centred column. They're repeated in every HTML file because there's no templating, so if you change a nav link (home, projects, about), update it in each page, including `projects/_template/index.html`.
+- **Footer height:** the footer must stay exactly `--footer-h` (78px) tall, or the home page can't scroll fully onto Get in touch. If you change its padding or font size, update the token too.
+- **Snapping:** only the home page snaps, through `<html class="snap">`. Every other page scrolls freely.
+- **About page:** the portrait and the certifications section are hidden in HTML comments in `about.html`. Uncomment them to bring them back. The layout switches to two columns on its own when the portrait is present.
 - **Contact details:** search the project for `your.email@example.com` and `your-handle` and replace them with your own.

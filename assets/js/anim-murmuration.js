@@ -5,7 +5,8 @@
   returned destroy() for when the visitor switches animation.
 
   Changes from the original:
-    - reads its bird colour from --flock-bird
+    - the birds wear Conway's five colours (--life-1 … --life-8): each bird
+      keeps one flat colour for life, with no shades, drawn one fill per colour
     - accepts a visibleMargin option, so it can pause behind a sticky header
     - registers its mount function instead of mounting itself
   It already cleared to a transparent canvas, so the page shows through.
@@ -72,8 +73,9 @@
   const TAU = Math.PI * 2;
 
   class Flock {
-    constructor(config) {
+    constructor(config, colorCount) {
       this.config = config;
+      this.colorCount = colorCount;
       const capacity = config.maxBirds;
 
       // Struct-of-arrays: tight, allocation-free updates.
@@ -83,6 +85,7 @@
       this.vy = new Float32Array(capacity);
       this.nextVx = new Float32Array(capacity);  // every bird decides from the same snapshot
       this.nextVy = new Float32Array(capacity);
+      this.colorOf = new Uint8Array(capacity);   // palette index, fixed for the bird's life
       this.count = 0;
 
       this.width = 0;
@@ -141,6 +144,7 @@
         this.x[i] = this.width / 2 + Math.cos(a) * r;
         this.y[i] = this.height / 2 + Math.sin(a) * r;
         this.setVelocity(i, heading + (Math.random() - 0.5) * 0.6, this.randomCruise());
+        this.colorOf[i] = i % this.colorCount;   // equal shares; positions are random
       }
       this.count = n;
     }
@@ -155,6 +159,7 @@
         this.y[i] = this.y[j] + (Math.random() - 0.5) * repulsionRadius * 2;
         this.vx[i] = this.vx[j];
         this.vy[i] = this.vy[j];
+        this.colorOf[i] = this.colorOf[j];       // joins in its neighbour's colour
       }
     }
 
@@ -346,32 +351,39 @@
       }
     }
 
-    // Each bird is a small dart pointing where it flies, all filled in one path.
-    draw(ctx, color) {
+    // Each bird is a small dart pointing where it flies. Birds of one colour
+    // share a path, so a frame is one fill per colour.
+    draw(ctx, colors) {
       const half = this.config.birdLength / 2;
       const wing = this.config.birdWidth / 2;
       const notch = this.config.birdLength / 4;
 
       ctx.clearRect(0, 0, this.width, this.height);
-      ctx.fillStyle = color;
-      ctx.beginPath();
-
-      for (let i = 0; i < this.count; i++) {
-        const speed = Math.hypot(this.vx[i], this.vy[i]) || 1;
-        const fx = this.vx[i] / speed;   // forward
-        const fy = this.vy[i] / speed;
-        const sx = -fy;                  // sideways
-        const sy = fx;
-        const x = this.x[i];
-        const y = this.y[i];
-
-        ctx.moveTo(x + fx * half, y + fy * half);
-        ctx.lineTo(x - fx * half + sx * wing, y - fy * half + sy * wing);
-        ctx.lineTo(x - fx * notch, y - fy * notch);
-        ctx.lineTo(x - fx * half - sx * wing, y - fy * half - sy * wing);
-        ctx.closePath();
+      for (let c = 0; c < colors.length; c++) {
+        ctx.fillStyle = colors[c];
+        ctx.beginPath();
+        for (let i = 0; i < this.count; i++) {
+          if (this.colorOf[i] === c) this.trace(ctx, i, half, wing, notch);
+        }
+        ctx.fill();
       }
-      ctx.fill();
+    }
+
+    // Adds bird i's dart to the current path.
+    trace(ctx, i, half, wing, notch) {
+      const speed = Math.hypot(this.vx[i], this.vy[i]) || 1;
+      const fx = this.vx[i] / speed;   // forward
+      const fy = this.vy[i] / speed;
+      const sx = -fy;                  // sideways
+      const sy = fx;
+      const x = this.x[i];
+      const y = this.y[i];
+
+      ctx.moveTo(x + fx * half, y + fy * half);
+      ctx.lineTo(x - fx * half + sx * wing, y - fy * half + sy * wing);
+      ctx.lineTo(x - fx * notch, y - fy * notch);
+      ctx.lineTo(x - fx * half - sx * wing, y - fy * half - sy * wing);
+      ctx.closePath();
     }
   }
 
@@ -383,6 +395,19 @@
     return a - TAU * Math.floor((a + Math.PI) / TAU);
   }
 
+  // Conway's base colours, from the same CSS variables, so the two animations
+  // always share one palette.
+  function readColors(element) {
+    const style = getComputedStyle(element);
+    const colors = [];
+    for (let k = 1; k <= 8; k++) {
+      const value = style.getPropertyValue(`--life-${k}`).trim();
+      if (!value) break;
+      colors.push(value);
+    }
+    return colors.length ? colors : ["#34445e", "#2f5652", "#5e3533", "#6b5035", "#4a3b55"];
+  }
+
   /*
     Wires a Flock to a canvas: sizing, the animation loop, and pausing when
     the panel is off-screen or the viewer prefers reduced motion.
@@ -391,9 +416,9 @@
   function mountMurmuration(canvas, overrides = {}) {
     const config = Object.freeze({ ...DEFAULTS, ...overrides });
     const ctx = canvas.getContext("2d");
-    const flock = new Flock(config);
+    const colors = readColors(canvas);
+    const flock = new Flock(config, colors.length);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const color = getComputedStyle(canvas).getPropertyValue("--flock-bird").trim() || "#2e7a73";
 
     let frameId = 0;
     let lastTime = 0;
@@ -416,7 +441,7 @@
         const steps = reducedMotion.matches ? config.reducedMotionSteps : config.warmUpSteps;
         for (let s = 0; s < steps; s++) flock.step(config.step);
       }
-      flock.draw(ctx, color);
+      flock.draw(ctx, colors);
       updateLoop();
     }
 
@@ -432,7 +457,7 @@
       }
       if (steps === config.maxStepsPerFrame) backlog = 0;
 
-      flock.draw(ctx, color);
+      flock.draw(ctx, colors);
       frameId = requestAnimationFrame(frame);
     }
 

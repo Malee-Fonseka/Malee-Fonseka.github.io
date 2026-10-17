@@ -15,12 +15,15 @@
       --tank-dot-light
     - accepts a visibleMargin option, so it can pause behind a sticky header
     - registers its mount function instead of mounting itself
+    - eight fish instead of five: dark pink with green spots, black with
+      white bars, and plain off-white join the original colourways, with a
+      "none" marking for the plain one
 */
 (() => {
   "use strict";
 
   /*
-    Fish tank: five pixel-art fish seen from above, in water that ripples.
+    Fish tank: eight pixel-art fish seen from above, in water that ripples.
 
     Fish body.  A spine of nodes from snout (s = 0) to tail-fin tip (s = 1).
     Motion is curvature along the spine, integrated into positions:
@@ -54,7 +57,7 @@
   const TAU = Math.PI * 2;
 
   const config = Object.freeze({
-    fishCount: 5,
+    fishCount: 8,                 // one per colourway in FISH_STYLES
 
     // Fish length as a fraction of the tank's shorter side.
     lengthFraction: 0.13,
@@ -169,6 +172,7 @@
              "spots"  a few small round spots
              "dots"   single-pixel speckles
              "stripe" a thin line down the spine
+             "none"   plain body, no marking
   */
   const FISH_STYLES = Object.freeze([
     // Dark teal with silver crossbars.
@@ -181,6 +185,13 @@
     { marking: "stripe", outline: "#211830", base: "#3f3052", mark: "#b8a05a", tail: "#4a3a5f", fin: "#55456b", eye: "#0c0812" },
     // Dark red with white spots.
     { marking: "spots",  outline: "#341716", base: "#682c29", mark: "#cdc6ba", tail: "#773735", fin: "#83423f", eye: "#140808" },
+    // Dark pink with green spots.
+    { marking: "spots",  outline: "#2b1222", base: "#5a2747", mark: "#6f9a6b", tail: "#66304f", fin: "#71395a", eye: "#0f060c" },
+    // Black with white crossbars. The outline is lighter than the body, so the
+    // silhouette shows against the dark page.
+    { marking: "bars",   outline: "#3a3e42", base: "#141618", mark: "#d5dadd", tail: "#1c1f22", fin: "#24282b", eye: "#788187" },
+    // Off-white, unmarked: the site's matte text colour, not pure white.
+    { marking: "none",   outline: "#8b949a", base: "#d5dadd", mark: "#d5dadd", tail: "#c3c9cc", fin: "#b3bbc1", eye: "#1c2023" },
   ]);
   const COLOR_SLOTS = ["outline", "base", "mark", "tail", "fin", "eye"];
   const SLOT = Object.freeze(Object.fromEntries(COLOR_SLOTS.map((name, i) => [name, i + 1])));
@@ -317,6 +328,8 @@
         return { kind, items: scatter(randomInt(6, 9), 0, 0.15, 0.72, 0.7) };
       case "spots":
         return { kind, items: scatter(randomInt(2, 3), random(0.035, 0.05), 0.2, 0.68, 0.45) };
+      case "none":
+        return { kind };
       default:
         throw new Error(`Unknown fish marking: ${kind}`);
     }
@@ -827,6 +840,8 @@
         case "stripe":
           return along > marks.from && along < marks.to && Math.abs(sideways) <= this.cellCss * 0.6
             ? SLOT.mark : SLOT.base;
+        case "none":
+          return SLOT.base;
         default: {
           // "spots" and "dots": discs placed in body coordinates. A radius of at
           // least 0.71 pixel always covers one pixel centre, so none vanish.
