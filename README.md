@@ -43,7 +43,7 @@ Section numbers (`SEC 01`), figure numbers (`FIG. 01`), contents numbers and car
 | --- | --- | --- |
 | Section | `<section class="cs-sec" id="…"><h2>…</h2>` | A numbered section; add a matching link in the contents list |
 | Key numbers | `<ul class="metrics">` | Two to four headline figures |
-| Figure | `<figure class="figure framed">` | Images, screenshots and exported diagrams, with an auto-numbered caption |
+| Figure | `<figure class="figure">` | Images, screenshots and exported diagrams, with an auto-numbered caption |
 | Zoomable figure | `<a class="figure__media" href="…">` around the image | Lets readers open large diagrams full size |
 | Flow diagram | `<ol class="flow">` with `<li class="flow__node">` | Step-by-step pipelines drawn in pure HTML; arrows are automatic |
 | Gallery | `<div class="gallery">` holding figures | Several screenshots side by side |
