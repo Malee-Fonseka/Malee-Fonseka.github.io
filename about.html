@@ -22,209 +22,216 @@
         <span class="brand__name">maleesha<b>.</b>fonseka</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
+        <a href="index.html">home</a>
         <a href="projects.html">projects</a>
         <a href="about.html" aria-current="page">about</a>
-        <a href="index.html#contact">contact</a>
       </nav>
     </div>
   </header>
 
   <main id="main">
-    <div class="container">
 
-      <!-- ============ INTRO ============ -->
-      <header class="page-head">
-        <nav class="crumbs" aria-label="Breadcrumb">
-          <a href="index.html">~</a>/<span aria-current="page">about</span>
-        </nav>
+    <!-- ============ 1 · SUMMARY ============ -->
+    <section class="screen" aria-labelledby="about-title">
+      <div class="container">
+        <header class="page-head">
+          <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="index.html">~</a>/<span aria-current="page">about</span>
+          </nav>
 
-        <div class="about-intro">
-          <div class="about-intro__text">
-            <h1 class="rise">About</h1>
-            <!-- EDIT: write this in your own voice -->
-            <p class="page-head__lede rise" style="--i:1">
-              I'm Maleesha, an engineering undergraduate at the University of Ruhuna who enjoys
-              turning a vague problem into a system that is clearly reasoned and actually works.
-            </p>
-            <p class="rise" style="--i:2">
-              Most of my recent work sits where mobile development meets backend architecture:
-              designing service boundaries, writing API contracts, and building clients that hold up
-              when the network or the data does not behave. I care about documentation as much as code,
-              which is why every project here has a full write-up.
-            </p>
-            <p class="rise" style="--i:3">
-              Outside coursework I <!-- EDIT --> like to … (a line about interests, communities or what you are learning next).
-            </p>
-          </div>
-
-          <!-- EDIT: replace assets/img/portrait.svg with your photo (4:5 ratio works best) -->
-          <figure class="portrait framed rise" style="--i:2">
-            <img src="assets/img/portrait.svg" alt="Portrait of Maleesha Fonseka" width="800" height="1000">
-            <figcaption><span>M. Fonseka</span><span>fig. 00</span></figcaption>
-          </figure>
-        </div>
-      </header>
-
-      <!-- ============ EDUCATION ============ -->
-      <section class="section section--tight" aria-labelledby="edu-title">
-        <header class="sec-head">
-          <div class="sec-head__meta"><span class="sec-head__tag">education</span><span>2 records</span></div>
-          <h2 id="edu-title">Education</h2>
-        </header>
-
-        <!-- Each <li class="tl-item"> is one entry. Add class="is-current" to fill its marker teal. -->
-        <ol class="timeline">
-          <li class="tl-item is-current">
-            <!-- EDIT: confirm your intake year and degree title -->
-            <p class="tl-when">2021 — present</p>
-            <div class="tl-body">
-              <h3>BSc Engineering (Hons)</h3>
-              <p class="tl-where">University of Ruhuna · Faculty of Engineering</p>
-              <p>
-                Department of Electrical and Information Engineering. Coursework includes software
-                architecture (EC8208), where my team designed and is prototyping Screen-Shield.
+          <div class="about-intro">
+            <div class="about-intro__text">
+              <h1 class="rise" id="about-title">About</h1>
+              <!-- EDIT: write this in your own voice -->
+              <p class="page-head__lede rise" style="--i:1">
+                I'm Maleesha, an engineering undergraduate at the University of Ruhuna who enjoys
+                turning a vague problem into a system that is clearly reasoned and actually works.
               </p>
-              <ul class="tl-points">
-                <li>Relevant modules: Software Architecture (EC8208), <!-- EDIT: add more --> …</li>
-                <li>Final-year project: <!-- EDIT --> title and one-line summary</li>
-              </ul>
+              <p class="rise" style="--i:2">
+                Most of my recent work sits where mobile development meets backend architecture:
+                designing service boundaries, writing API contracts, and building clients that hold up
+                when the network or the data does not behave. I care about documentation as much as code,
+                which is why every project here has a full write-up.
+              </p>
+              <p class="rise" style="--i:3">
+                Outside coursework I <!-- EDIT --> like to … (a line about interests, communities or what you are learning next).
+              </p>
             </div>
-          </li>
 
-          <li class="tl-item">
-            <p class="tl-when"><!-- EDIT -->20XX — 20XX</p>
-            <div class="tl-body">
-              <h3>G.C.E. Advanced Level · Physical Science</h3>
-              <p class="tl-where"><!-- EDIT -->School name, City</p>
-              <p><!-- EDIT -->Results, stream, or any distinction worth mentioning.</p>
-            </div>
-          </li>
-        </ol>
-      </section>
-
-      <!-- ============ EXPERIENCE ============ -->
-      <section class="section section--tight" aria-labelledby="exp-title">
-        <header class="sec-head">
-          <div class="sec-head__meta"><span class="sec-head__tag">experience</span><span>industry</span></div>
-          <h2 id="exp-title">Industry experience</h2>
+            <!-- Photo, hidden for now. To bring it back, replace assets/img/portrait.svg
+                 with your photo (4:5 works best) and uncomment the figure below.
+                 The layout switches to two columns on its own when the figure is present.
+            <figure class="portrait rise" style="--i:2">
+              <img src="assets/img/portrait.svg" alt="Portrait of Maleesha Fonseka" width="800" height="1000">
+              <figcaption><span>M. Fonseka</span><span>fig. 00</span></figcaption>
+            </figure>
+            -->
+          </div>
         </header>
+      </div>
+    </section>
 
-        <!-- EDIT: one <li class="tl-item"> per role, most recent first -->
-        <ol class="timeline">
-          <li class="tl-item">
-            <p class="tl-when">Mon YYYY — Mon YYYY</p>
-            <div class="tl-body">
-              <h3>Software Engineering Intern</h3>
-              <p class="tl-where">Company name · City</p>
-              <p>One sentence on the team, the product, and where you fitted in.</p>
-              <ul class="tl-points">
-                <li>What you built, and the technology you built it with.</li>
-                <li>A measurable result: performance gained, time saved, users reached.</li>
-                <li>Something you owned end to end, or a practice you introduced.</li>
+    <!-- ============ 2 · BACKGROUND: education, experience, skills ============ -->
+    <section class="screen about-background" aria-label="Education, experience and skills">
+      <div class="container">
+
+        <section class="section section--tight" aria-labelledby="edu-title">
+          <header class="sec-head">
+            <div class="sec-head__meta"><span class="sec-head__tag">education</span><span>2 records</span></div>
+            <h2 id="edu-title">Education</h2>
+          </header>
+
+          <!-- Each <li class="tl-item"> is one entry. Add class="is-current" to fill its marker teal. -->
+          <ol class="timeline">
+            <li class="tl-item is-current">
+              <!-- EDIT: confirm your intake year and degree title -->
+              <p class="tl-when">2021 — present</p>
+              <div class="tl-body">
+                <h3>BSc Engineering (Hons)</h3>
+                <p class="tl-where">University of Ruhuna · Faculty of Engineering</p>
+                <p>
+                  Department of Electrical and Information Engineering. Coursework includes software
+                  architecture (EC8208), where my team designed and is prototyping Screen-Shield.
+                </p>
+                <ul class="tl-points">
+                  <li>Relevant modules: Software Architecture (EC8208), <!-- EDIT: add more --> …</li>
+                  <li>Final-year project: <!-- EDIT --> title and one-line summary</li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="tl-item">
+              <p class="tl-when"><!-- EDIT -->20XX — 20XX</p>
+              <div class="tl-body">
+                <h3>G.C.E. Advanced Level · Physical Science</h3>
+                <p class="tl-where"><!-- EDIT -->School name, City</p>
+                <p><!-- EDIT -->Results, stream, or any distinction worth mentioning.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section section--tight" aria-labelledby="exp-title">
+          <header class="sec-head">
+            <div class="sec-head__meta"><span class="sec-head__tag">experience</span><span>industry</span></div>
+            <h2 id="exp-title">Industry experience</h2>
+          </header>
+
+          <!-- EDIT: one <li class="tl-item"> per role, most recent first -->
+          <ol class="timeline">
+            <li class="tl-item">
+              <p class="tl-when">Mon YYYY — Mon YYYY</p>
+              <div class="tl-body">
+                <h3>Software Engineering Intern</h3>
+                <p class="tl-where">Company name · City</p>
+                <p>One sentence on the team, the product, and where you fitted in.</p>
+                <ul class="tl-points">
+                  <li>What you built, and the technology you built it with.</li>
+                  <li>A measurable result: performance gained, time saved, users reached.</li>
+                  <li>Something you owned end to end, or a practice you introduced.</li>
+                </ul>
+                <ul class="chips" aria-label="Technologies used">
+                  <li class="key">Primary tech</li><li>Tech</li><li>Tech</li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section section--tight" aria-labelledby="skills-title">
+          <header class="sec-head">
+            <div class="sec-head__meta"><span class="sec-head__tag">skills</span><span>technical</span></div>
+            <h2 id="skills-title">Technical skills</h2>
+            <p>Tools I have used in real projects. Highlighted entries are the ones I reach for first.</p>
+          </header>
+
+          <!-- EDIT: add, remove or regroup freely. class="key" highlights a chip. -->
+          <div class="skills">
+            <section class="skill-group">
+              <h3>languages</h3>
+              <ul class="chips">
+                <li class="key">TypeScript</li><li class="key">JavaScript</li><li>SQL</li>
               </ul>
-              <ul class="chips" aria-label="Technologies used">
-                <li class="key">Primary tech</li><li>Tech</li><li>Tech</li>
+            </section>
+            <section class="skill-group">
+              <h3>mobile &amp; frontend</h3>
+              <ul class="chips">
+                <li class="key">React Native</li><li>Expo Router</li><li>TanStack Query</li><li>Zustand</li><li>i18next</li><li>HTML / CSS</li>
               </ul>
-            </div>
-          </li>
-        </ol>
-      </section>
+            </section>
+            <section class="skill-group">
+              <h3>backend</h3>
+              <ul class="chips">
+                <li class="key">Node.js</li><li class="key">Express</li><li>REST API design</li><li>JWT auth</li><li>Joi</li>
+              </ul>
+            </section>
+            <section class="skill-group">
+              <h3>data</h3>
+              <ul class="chips">
+                <li class="key">PostgreSQL</li><li>MongoDB</li><li>Mongoose</li>
+              </ul>
+            </section>
+            <section class="skill-group">
+              <h3>infrastructure</h3>
+              <ul class="chips">
+                <li class="key">Docker</li><li>Docker Compose</li><li>Git &amp; GitHub</li>
+              </ul>
+            </section>
+            <section class="skill-group">
+              <h3>practices</h3>
+              <ul class="chips">
+                <li class="key">Microservices</li><li>Architecture decision records</li><li>UML</li><li>Unit testing (Jest)</li>
+              </ul>
+            </section>
+          </div>
+        </section>
 
-      <!-- ============ SKILLS ============ -->
-      <section class="section section--tight" aria-labelledby="skills-title">
-        <header class="sec-head">
-          <div class="sec-head__meta"><span class="sec-head__tag">skills</span><span>technical</span></div>
-          <h2 id="skills-title">Technical skills</h2>
-          <p>Tools I have used in real projects. Highlighted entries are the ones I reach for first.</p>
-        </header>
+        <!-- Certifications & achievements: removed for now (backlog Q2).
+             To bring it back, move the section below out of this comment.
+             One <li> per item. Wrap it in <a class="ledger__row" href="…"> instead of <div> to link a credential.
+        <section class="section section--tight" aria-labelledby="awards-title">
+          <header class="sec-head">
+            <div class="sec-head__meta"><span class="sec-head__tag">records</span><span>certs · awards</span></div>
+            <h2 id="awards-title">Certifications &amp; achievements</h2>
+          </header>
 
-        <!-- EDIT: add, remove or regroup freely. class="key" highlights a chip. -->
-        <div class="skills">
-          <section class="skill-group framed">
-            <h3>languages</h3>
-            <ul class="chips">
-              <li class="key">TypeScript</li><li class="key">JavaScript</li><li>SQL</li>
-            </ul>
-          </section>
-          <section class="skill-group framed">
-            <h3>mobile &amp; frontend</h3>
-            <ul class="chips">
-              <li class="key">React Native</li><li>Expo Router</li><li>TanStack Query</li><li>Zustand</li><li>i18next</li><li>HTML / CSS</li>
-            </ul>
-          </section>
-          <section class="skill-group framed">
-            <h3>backend</h3>
-            <ul class="chips">
-              <li class="key">Node.js</li><li class="key">Express</li><li>REST API design</li><li>JWT auth</li><li>Joi</li>
-            </ul>
-          </section>
-          <section class="skill-group framed">
-            <h3>data</h3>
-            <ul class="chips">
-              <li class="key">PostgreSQL</li><li>MongoDB</li><li>Mongoose</li>
-            </ul>
-          </section>
-          <section class="skill-group framed">
-            <h3>infrastructure</h3>
-            <ul class="chips">
-              <li class="key">Docker</li><li>Docker Compose</li><li>Git &amp; GitHub</li>
-            </ul>
-          </section>
-          <section class="skill-group framed">
-            <h3>practices</h3>
-            <ul class="chips">
-              <li class="key">Microservices</li><li>Architecture decision records</li><li>UML</li><li>Unit testing (Jest)</li>
-            </ul>
-          </section>
-        </div>
-      </section>
+          <ul class="ledger awards">
+            <li>
+              <div class="ledger__row">
+                <span class="ledger__k">YYYY</span>
+                <span class="ledger__v">Certification name<small>Issuing organisation</small></span>
+              </div>
+            </li>
+            <li>
+              <div class="ledger__row">
+                <span class="ledger__k">YYYY</span>
+                <span class="ledger__v">Hackathon, competition or award<small>Organiser · placement</small></span>
+              </div>
+            </li>
+          </ul>
+        </section>
+        -->
 
-      <!-- ============ CERTIFICATIONS & ACHIEVEMENTS ============ -->
-      <section class="section section--tight" aria-labelledby="awards-title">
-        <header class="sec-head">
-          <div class="sec-head__meta"><span class="sec-head__tag">records</span><span>certs · awards</span></div>
-          <h2 id="awards-title">Certifications &amp; achievements</h2>
-        </header>
+      </div>
+    </section>
 
-        <!-- EDIT: one <li> per item. Wrap in <a class="ledger__row" href="…"> instead of <div> to link a credential. -->
-        <ul class="ledger awards">
-          <li>
-            <div class="ledger__row">
-              <span class="ledger__k">YYYY</span>
-              <span class="ledger__v">Certification name<small>Issuing organisation</small></span>
-            </div>
-          </li>
-          <li>
-            <div class="ledger__row">
-              <span class="ledger__k">YYYY</span>
-              <span class="ledger__v">Hackathon, competition or award<small>Organiser · placement</small></span>
-            </div>
-          </li>
-        </ul>
-      </section>
-
-      <!-- ============ CTA ============ -->
-      <section class="section section--tight">
-        <div class="cta-band framed">
+    <!-- ============ 3 · END ============ -->
+    <section class="screen screen--last about-end" aria-label="Get in touch">
+      <div class="container">
+        <div class="cta-band">
           <div>
             <h2>Have a role or project in mind?</h2>
             <p>I'm happy to talk through any of the work on this site.</p>
           </div>
           <a class="btn btn--primary" href="index.html#contact">get in touch <span class="arrow" aria-hidden="true">→</span></a>
         </div>
-      </section>
+      </div>
+    </section>
 
-    </div>
   </main>
 
   <footer class="site-footer">
     <div class="container">
-      <dl class="titleblock">
-        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
-        <div><dt>sheet</dt><dd>03 / about</dd></div>
-        <div><dt>rev</dt><dd>2026.10</dd></div>
-        <div><dt>medium</dt><dd>html + css</dd></div>
-      </dl>
       <div class="site-footer__bar">
         <p>© 2026 Maleesha Fonseka</p>
         <ul class="footer-links">

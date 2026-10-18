@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="snap">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/hero-animation.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -26,9 +27,9 @@
         <span class="brand__name">maleesha<b>.</b>fonseka</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
+        <a href="index.html" aria-current="page">home</a>
         <a href="projects.html">projects</a>
         <a href="about.html">about</a>
-        <a href="index.html#contact">contact</a>
       </nav>
     </div>
   </header>
@@ -36,15 +37,16 @@
   <main id="main">
 
     <!-- ============ HERO ============ -->
-    <section class="hero">
+    <section class="hero screen">
       <div class="container hero__grid">
-        <div>
+        <!-- Solid card, so the landing animation behind it never shows through the text -->
+        <div class="hero__card">
           <!-- EDIT: change or delete this status line -->
           <p class="hero__status rise"><span class="dot" aria-hidden="true"></span> open to opportunities</p>
 
           <h1 class="hero__name rise" style="--i:1">
             <span>Maleesha</span>
-            <span class="last">Fonseka<span class="caret" aria-hidden="true"></span></span>
+            <span class="last">Fonseka</span>
           </h1>
 
           <!-- EDIT: your headline and introduction -->
@@ -58,52 +60,26 @@
 
           <div class="hero__ctas rise" style="--i:4">
             <a class="btn btn--primary" href="projects.html">view projects <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn" href="about.html">about me</a>
             <a class="btn" href="#contact">get in touch</a>
           </div>
         </div>
 
-        <!-- EDIT: quick facts. Add or remove <div> rows freely. -->
-        <aside class="spec framed rise" style="--i:3" aria-label="Quick facts">
-          <div class="spec__head"><span>spec.sheet</span><span>MF/26</span></div>
-          <dl class="spec__list">
-            <div><dt>name</dt><dd>Maleesha Fonseka</dd></div>
-            <div><dt>based</dt><dd>Sri Lanka</dd></div>
-            <div><dt>study</dt><dd>BSc Eng · Univ. of Ruhuna</dd></div>
-            <div><dt>focus</dt><dd>mobile · backend · architecture</dd></div>
-            <div><dt>stack</dt><dd>TypeScript · React Native · Node.js</dd></div>
-            <div><dt>data</dt><dd>PostgreSQL · MongoDB</dd></div>
-            <div><dt>tooling</dt><dd>Docker · Git</dd></div>
-          </dl>
-          <div class="spec__foot"><span class="dot" aria-hidden="true"></span> currently building Screen-Shield</div>
-        </aside>
+        <!-- Filler slot: content to come (backlog V11-10). Keep it empty until then. -->
+        <div class="hero__filler" aria-hidden="true"></div>
       </div>
-    </section>
 
-    <!-- ============ INDEX ============ -->
-    <section class="section section--tight">
-      <div class="container">
-        <header class="sec-head">
-          <div class="sec-head__meta"><span class="sec-head__tag">index</span><span>2 entries</span></div>
-          <h2>Where to next</h2>
-        </header>
+      <a class="scroll-cue" href="#contact" aria-label="Scroll to Get in touch">scroll <span aria-hidden="true">↓</span></a>
 
-        <nav class="dir" aria-label="Site sections">
-          <a class="dir__row" href="projects.html">
-            <span class="dir__name">projects/</span>
-            <span class="dir__desc">In-depth case studies: architecture diagrams, design decisions, code and outcomes.</span>
-            <span class="dir__go" aria-hidden="true">→</span>
-          </a>
-          <a class="dir__row" href="about.html">
-            <span class="dir__name">about/</span>
-            <span class="dir__desc">Education, industry experience and technical skills.</span>
-            <span class="dir__go" aria-hidden="true">→</span>
-          </a>
-        </nav>
+      <!-- Landing animation switch and label, top left. Hidden until assets/js/hero-animation.js starts an animation. -->
+      <div class="anim-controls">
+        <button class="anim-switch" type="button" aria-label="Switch background animation" title="Switch animation" hidden><span aria-hidden="true">↻</span></button>
+        <p class="anim-label" aria-live="polite" aria-atomic="true" hidden><span class="anim-label__key">now playing · </span><span class="anim-label__name"></span></p>
       </div>
     </section>
 
     <!-- ============ CONTACT ============ -->
-    <section class="section" id="contact">
+    <section class="section screen screen--last" id="contact">
       <div class="container">
         <header class="sec-head">
           <div class="sec-head__meta"><span class="sec-head__tag">contact</span><span>3 channels</span></div>
@@ -160,12 +136,6 @@
 
   <footer class="site-footer">
     <div class="container">
-      <dl class="titleblock">
-        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
-        <div><dt>sheet</dt><dd>01 / home</dd></div>
-        <div><dt>rev</dt><dd>2026.10</dd></div>
-        <div><dt>medium</dt><dd>html + css</dd></div>
-      </dl>
       <div class="site-footer__bar">
         <p>© 2026 Maleesha Fonseka</p>
         <ul class="footer-links">

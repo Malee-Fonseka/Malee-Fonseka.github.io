@@ -25,9 +25,9 @@
         <span class="brand__name">maleesha<b>.</b>fonseka</span>
       </a>
       <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
         <a href="../../projects.html" aria-current="page">projects</a>
         <a href="../../about.html">about</a>
-        <a href="../../index.html#contact">contact</a>
       </nav>
     </div>
   </header>
@@ -70,7 +70,7 @@
         </div>
       </header>
 
-      <figure class="figure figure--cover cs-cover framed">
+      <figure class="figure figure--cover cs-cover">
         <div class="figure__media">
           <img src="images/cover.svg" alt="Illustration of the Screen-Shield dashboard beside a sketch of its backend services" width="1200" height="675">
         </div>
@@ -202,7 +202,7 @@
               guarantees, while the write-heavy stream of usage events goes to MongoDB.
             </p>
 
-            <figure class="figure framed">
+            <figure class="figure">
               <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
                 <img src="images/architecture.svg" alt="Architecture diagram: the Expo app sends HTTP requests with a JWT to the API gateway on port 8080, which routes to the auth service (4001), usage service (4002) and parental service (4003). Auth and parental use PostgreSQL 16; usage uses MongoDB 7. The parental service calls the usage service over REST. Everything except the app runs on a Docker Compose network." width="960" height="500" loading="lazy">
               </a>
@@ -224,7 +224,7 @@
             <h2>Implementation</h2>
             <p>Every feature follows the same request path:</p>
 
-            <figure class="figure figure--pad framed">
+            <figure class="figure figure--pad">
               <div class="figure__media">
                 <ol class="flow">
                   <li class="flow__node"><strong>Expo app</strong><span>sends the request with <code>Bearer &lt;jwt&gt;</code></span></li>
@@ -302,19 +302,19 @@
 
             <!-- EDIT: these are wireframes. Swap in real screenshots from the running app. -->
             <div class="gallery">
-              <figure class="figure framed">
+              <figure class="figure">
                 <a class="figure__media" href="images/screen-dashboard.svg" target="_blank" rel="noopener">
                   <img src="images/screen-dashboard.svg" alt="Wireframe of the dashboard: total screen time, bar chart, category donut and top apps" width="360" height="720" loading="lazy">
                 </a>
                 <figcaption>Dashboard (wireframe).</figcaption>
               </figure>
-              <figure class="figure framed">
+              <figure class="figure">
                 <a class="figure__media" href="images/screen-detail.svg" target="_blank" rel="noopener">
                   <img src="images/screen-detail.svg" alt="Wireframe of an app detail screen showing usage against a daily limit with a warning banner" width="360" height="720" loading="lazy">
                 </a>
                 <figcaption>App detail with a limit warning (wireframe).</figcaption>
               </figure>
-              <figure class="figure framed">
+              <figure class="figure">
                 <a class="figure__media" href="images/screen-settings.svg" target="_blank" rel="noopener">
                   <img src="images/screen-settings.svg" alt="Wireframe of the settings screen with an English and Sinhala language switch and a PIN lock toggle" width="360" height="720" loading="lazy">
                 </a>
@@ -386,12 +386,6 @@
 
   <footer class="site-footer">
     <div class="container">
-      <dl class="titleblock">
-        <div><dt>drawn by</dt><dd>Maleesha Fonseka</dd></div>
-        <div><dt>sheet</dt><dd>02 / case study</dd></div>
-        <div><dt>rev</dt><dd>2026.10</dd></div>
-        <div><dt>medium</dt><dd>html + css</dd></div>
-      </dl>
       <div class="site-footer__bar">
         <p>© 2026 Maleesha Fonseka</p>
         <ul class="footer-links">
