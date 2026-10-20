@@ -84,6 +84,8 @@ html {
 
 body {
   min-height: 100vh;
+  -webkit-user-select: none;   /* text can't be selected on any page */
+  user-select: none;
   display: flex;
   flex-direction: column;
   font-family: var(--font);
@@ -131,7 +133,6 @@ a {
 a:hover { color: #8fd8cf; text-decoration-color: currentColor; }
 
 :focus-visible { outline: 1px solid var(--teal-hi); outline-offset: 3px; }
-::selection { background: var(--teal-lo); color: #fff; }
 
 h1, h2, h3, h4 {
   font-weight: 600;
@@ -696,7 +697,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 24px;
   counter-reset: project;
 }
@@ -705,7 +706,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;              /* rounds the thumbnail's top corners */
   border-radius: var(--radius-md);
   background: var(--bg-1);
   box-shadow: var(--shadow-md);
@@ -714,21 +714,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 .card:hover { background: var(--bg-2); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .card:has(.card__link:focus-visible) { outline: 1px solid var(--teal-hi); outline-offset: 3px; }
-
-.card__thumb {
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-media);
-}
-.card__thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.6) brightness(0.85);
-  transition: filter 0.4s, transform 0.6s var(--ease);
-}
-.card:hover .card__thumb img { filter: none; transform: scale(1.02); }
 
 .card__body {
   flex: 1;
@@ -779,7 +764,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .card--ghost {
   justify-content: center;
   align-items: center;
-  min-height: 280px;
   padding: 32px;
   text-align: center;
   background: rgba(255, 255, 255, 0.015);
@@ -795,7 +779,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 /* 7. Case study (project detail pages)
    ========================================================================== */
 
-.cs-head { padding-block: clamp(40px, 7vw, 80px) clamp(28px, 4vw, 40px); }
+.cs-head { padding-block: clamp(40px, 7vw, 80px) clamp(40px, 6vw, 64px); }
 
 .cs-kicker {
   margin-bottom: 14px;
@@ -807,32 +791,8 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .cs-head h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); letter-spacing: -0.035em; }
 .cs-lede { margin-top: 18px; max-width: 66ch; font-size: var(--fs-md); color: var(--text-dim); }
 
-/* Project facts strip: year, role, team, timeline, status */
-.cs-meta {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 32px;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--bg-1);
-  box-shadow: var(--shadow-md);
-}
-.cs-meta > div {
-  flex: 1 1 150px;
-  padding: 12px 16px;
-}
-.cs-meta dt {
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-.cs-meta dd { font-size: var(--fs-sm); color: var(--text); }
-
-.cs-head .chips { margin-top: 20px; }
+.cs-head .chips { margin-top: 24px; }
 .cs-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-
-.cs-cover { margin-bottom: clamp(40px, 6vw, 72px); }
 
 .cs-layout {
   display: grid;
@@ -1019,8 +979,6 @@ a.figure__media:focus-visible::after { opacity: 1; }
   letter-spacing: 0.08em;
   color: var(--teal);
 }
-.figure--cover { counter-increment: none; }
-.figure--cover figcaption::before { content: "COVER  "; }
 
 /* Image grid: screenshots, wireframes */
 .gallery {
