@@ -1415,6 +1415,10 @@ a.figure__media:focus-visible::after { opacity: 1; }
 
   .ledger__k { flex-basis: 7ch; }
   .ledger__leader { display: none; }
+
+  /* Decision terms go above their text, so a long term can't squeeze it */
+  .callout dl { grid-template-columns: 1fr; gap: 2px; }
+  .callout dd + dt { margin-top: 10px; }
 }
 
 /* Wide but short screens, such as laptops at 125–150% display scaling: the
