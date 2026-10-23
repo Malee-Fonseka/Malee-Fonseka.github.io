@@ -44,6 +44,13 @@
   --teal-fill:  #143936;
   --teal-wash:  rgba(61, 159, 150, 0.08);
 
+  /* Project areas: the small square beside each area on the projects page */
+  --area-ai:       #9d8fdc;
+  --area-data:     #78b37a;
+  --area-software: #6f9ad6;
+  --area-research: #cf9a5b;
+  --area-other:    #8a9399;
+
   /* Type: Fira Code, weight 450 matches the "Retina" cut */
   --font: "Fira Code", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
   --fs-xs:   0.72rem;
@@ -695,6 +702,70 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 /* 6. Projects index
    ========================================================================== */
 
+/* Area filter: shown by assets/js/project-filter.js, hidden without JavaScript */
+.filters {
+  padding: 16px 20px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-md);
+}
+.filters__label {
+  margin-bottom: 10px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.filters__opts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  color: var(--text-dim);
+  box-shadow: var(--shadow-sm);
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s, color 0.2s, background-color 0.2s;
+}
+.filter:hover { color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.filter[aria-pressed="true"] { background: var(--teal-fill); color: var(--text-head); }
+.filter__n { font-size: var(--fs-xs); color: var(--text-faint); }
+.filter[aria-pressed="true"] .filter__n { color: var(--teal-hi); }
+
+/* "1 project · software systems", between the filter and the cards */
+.filters-status {
+  margin: 32px 0 16px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.filters-status b { color: var(--silver); font-weight: 500; }
+
+/* Area colours, keyed by data-area on a card or a filter button */
+[data-area="ai"]               { --area: var(--area-ai); }
+[data-area="data-engineering"] { --area: var(--area-data); }
+[data-area="software-systems"] { --area: var(--area-software); }
+[data-area="research"]         { --area: var(--area-research); }
+[data-area="other"]            { --area: var(--area-other); }
+
+/* Area name with its coloured square, on cards and filter buttons */
+.area { display: inline-flex; align-items: center; gap: 8px; }
+.area::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: var(--area, var(--text-faint));
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
@@ -714,6 +785,13 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 .card:hover { background: var(--bg-2); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .card:has(.card__link:focus-visible) { outline: 1px solid var(--teal-hi); outline-offset: 3px; }
+/* Each project card is a dark shade of its area's colour. The faint text is
+   lifted a little so it keeps its contrast on the tint. */
+.card[data-area] {
+  --text-faint: #8a939a;
+  background: color-mix(in srgb, var(--area) 14%, var(--bg-1));
+}
+.card[data-area]:hover { background: color-mix(in srgb, var(--area) 20%, var(--bg-2)); }
 
 .card__body {
   flex: 1;

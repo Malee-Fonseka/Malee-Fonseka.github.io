@@ -38,7 +38,7 @@ card:
   status: complete            # complete | in progress | archived
   description: >
     One or two sentences: what it is and why it is interesting.
-  categories: category · category
+  area: software systems      # ai | data engineering | software systems | research | other
   tech:                       # optional shorter stack; delete to reuse the one above
     key: [Main tech]
     other: [Tech, Tech]

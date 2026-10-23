@@ -1,7 +1,7 @@
 # Malee-Fonseka.github.io
 
 My personal portfolio: an introduction, in-depth project case studies, and my education, experience and skills.
-It's plain HTML and CSS with no build step, hosted on GitHub Pages. The only JavaScript is the home page's background animation, and every page still works without it.
+It's plain HTML and CSS with no build step, hosted on GitHub Pages. The only JavaScript is the home page's background animation and the projects page's area filter, and every page still works without it.
 
 **Live site:** https://malee-fonseka.github.io/
 
@@ -9,7 +9,7 @@ It's plain HTML and CSS with no build step, hosted on GitHub Pages. The only Jav
 
 ```
 index.html                 Home: introduction card over the animation, then Get in touch
-projects.html              Project index: one card per project
+projects.html              Project index: area filter, then one card per project
 about.html                 Summary, then education, experience and skills
 404.html                   Shown by GitHub Pages for missing URLs
 assets/
@@ -18,6 +18,7 @@ assets/
   js/anim-fish-tank.js     The three animations, each loaded only when shown
   js/anim-murmuration.js
   js/anim-conway.js
+  js/project-filter.js     The projects page's area filter
   img/                     Favicon, and a portrait placeholder (hidden for now)
 projects/
   _template/               Starter for new case studies (not published)
@@ -67,10 +68,18 @@ Claude follows the markup in `projects/_template/index.html`, so generated pages
 - **Figures:** each image links to its full-size file, loads lazily, and gets a `width` and `height` read from the image file, so the page doesn't jump while it loads.
 - **Code:** escaped, and coloured with the `tok-*` classes (keywords, strings, numbers, comments and function names).
 - **Links:** external links open in a new tab, like every other external link on the site.
-- **Card:** status `complete`, `in progress` or `archived` becomes `status--done`, `status--wip` or `status--archived`. The card's tech stack falls back to the page's if it has none of its own.
+- **Card:** status `complete`, `in progress` or `archived` becomes `status--done`, `status--wip` or `status--archived`. The area becomes the card's `data-area` id (`ai`, `data-engineering`, `software-systems`, `research` or `other`) and its name in the card's footer. The card's tech stack falls back to the page's if it has none of its own.
 - **Comments** in the Markdown are notes to yourself and are left out of the page.
 
 For diagrams, draw them in [draw.io](https://app.diagrams.net/), [Excalidraw](https://excalidraw.com/) or Figma and export them as SVG or PNG. A dark background (`#0d1011`) with light lines matches the site best.
+
+### The area filter
+
+The panel above the cards filters them by area: AI, data engineering, software systems, research or other. Each card's `data-area` decides where it appears, and `assets/js/project-filter.js` counts the cards in each area, so adding a card is all it takes. The chosen area goes in the address (`projects.html?area=research`), so you can link straight to a filtered view. Without JavaScript the panel stays hidden and every card shows.
+
+- **Area colours:** the `--area-*` tokens in section 1 of `style.css`, used for the square beside each area name.
+- **Adding an area:** add a button to the panel in `projects.html` with a new `data-area` id, a colour token and a `[data-area="…"]` rule beside the others in `style.css`, then list it in the card template comment and in `_case-study.md`.
+- **Card numbers** (`P-01`) count only the cards showing, so they restart from `P-01` in each filtered view.
 
 ## The home page
 
