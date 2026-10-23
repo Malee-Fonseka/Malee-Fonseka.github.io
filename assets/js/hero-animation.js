@@ -24,9 +24,10 @@
   "use strict";
 
   // The first entry plays on load; the switch steps through the list in order.
+  // The murmuration is off for now. To bring it back, add this line after the fish tank:
+  //   { id: "murmuration", name: "murmuration", file: "anim-murmuration.js" },
   const ANIMATIONS = [
     { id: "fish-tank", name: "fish tank", file: "anim-fish-tank.js" },
-    { id: "murmuration", name: "murmuration", file: "anim-murmuration.js" },
     { id: "conway", name: "conway's game of life", file: "anim-conway.js" },
   ];
 

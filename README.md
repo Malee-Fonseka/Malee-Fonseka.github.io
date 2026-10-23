@@ -15,9 +15,9 @@ about.html                 Summary, then education, experience and skills
 assets/
   css/style.css            The only stylesheet; colours and fonts are tokens at the top
   js/hero-animation.js     Picks, loads and switches the home page animation
-  js/anim-fish-tank.js     The three animations, each loaded only when shown
-  js/anim-murmuration.js
+  js/anim-fish-tank.js     The two animations, each loaded only when shown
   js/anim-conway.js
+  js/anim-murmuration.js   A third animation, off for now (never loaded)
   js/project-filter.js     The projects page's area filter
   img/                     Favicon, and a portrait placeholder (hidden for now)
 projects/
@@ -85,10 +85,11 @@ The panel above the cards filters them by area: AI, data engineering, software s
 
 ### Background animation
 
-The fish tank plays behind the introduction card every time the page loads. The **switch** button at the top left moves on to the murmuration, then Conway's Game of Life, then back to the fish tank, and the label beside it names the one that's playing. Nothing is stored in the browser.
+The fish tank plays behind the introduction card every time the page loads. The **switch** button at the top left moves on to Conway's Game of Life, then back to the fish tank, and the label beside it names the one that's playing. Nothing is stored in the browser.
 
 - **Order and default:** the `ANIMATIONS` list at the top of `assets/js/hero-animation.js`. The first entry plays on load, and the switch steps through the rest in order.
-- **Colours:** the custom properties on `.hero__anim` in `style.css`. The five `--life-*` colours are shared by Conway and the murmuration; the `--tank-*` colours are the fish tank's water and dots. The fish colourways are in `FISH_STYLES` in `anim-fish-tank.js`.
+- **The murmuration** is off for now. `anim-murmuration.js` is still in the repository, but it isn't in `ANIMATIONS`, so it's never downloaded. To bring it back, add its line after the fish tank; the comment above `ANIMATIONS` has it ready to copy.
+- **Colours:** the custom properties on `.hero__anim` in `style.css`. The five `--life-*` colours are Conway's, and the murmuration uses them too; the `--tank-*` colours are the fish tank's water and dots. The fish colourways are in `FISH_STYLES` in `anim-fish-tank.js`.
 - **The original animations** in `docs/animations/` no longer feed the site. Edit the `assets/js/anim-*.js` files instead.
 - **Adding an animation:** write a file like the others that registers `window.heroAnimationRegistry[id] = mount`, where `mount(canvas, { visibleMargin })` draws into the canvas and returns a `destroy()` function. Then add a line to `ANIMATIONS`.
 
