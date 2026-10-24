@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" width="960" height="460" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>LogWitness system context: a monitored host, the Ethereum contract, and the analyst's machine</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#3d9f96"/>
+    </marker>
+  </defs>
+  <rect width="960" height="460" fill="#0d1011"/>
+
+  <!-- trust zones -->
+  <rect x="20" y="40" width="436" height="404" fill="none" stroke="#b3bbc1" stroke-opacity=".35" stroke-dasharray="4 4"/>
+  <text x="36" y="66" font-size="12" fill="#b3bbc1" letter-spacing="2">MONITORED HOST</text>
+  <text x="36" y="84" font-size="11" fill="#788187">untrusted after compromise</text>
+
+  <rect x="476" y="40" width="224" height="404" fill="#0f2523" fill-opacity=".35" stroke="#3d9f96" stroke-opacity=".6" stroke-dasharray="4 4"/>
+  <text x="492" y="66" font-size="12" fill="#3d9f96" letter-spacing="2">ETHEREUM</text>
+  <text x="492" y="84" font-size="11" fill="#788187">the only trust anchor</text>
+
+  <rect x="720" y="40" width="220" height="404" fill="none" stroke="#b3bbc1" stroke-opacity=".35" stroke-dasharray="4 4"/>
+  <text x="736" y="66" font-size="12" fill="#b3bbc1" letter-spacing="2">ANALYST MACHINE</text>
+  <text x="736" y="84" font-size="11" fill="#788187">outside the blast radius</text>
+
+  <!-- host -->
+  <rect x="44" y="112" width="168" height="52" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="128" y="143" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">application</text>
+
+  <path d="M44 212v48a84 10 0 0 0 168 0v-48" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <ellipse cx="128" cy="212" rx="84" ry="10" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="128" y="248" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">log file</text>
+
+  <rect x="264" y="206" width="168" height="60" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="348" y="234" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">lw-agent</text>
+  <text x="348" y="254" text-anchor="middle" font-size="11" fill="#788187">tail · batch · hash</text>
+
+  <path d="M264 320v52a84 10 0 0 0 168 0v-52" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <ellipse cx="348" cy="320" rx="84" ry="10" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="348" y="352" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">proof store</text>
+  <text x="348" y="370" text-anchor="middle" font-size="11" fill="#788187">SQLite · untrusted</text>
+
+  <!-- chain -->
+  <rect x="500" y="206" width="176" height="60" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="588" y="234" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">AuditAnchor</text>
+  <text x="588" y="254" text-anchor="middle" font-size="11" fill="#788187">roots · ranges · head</text>
+
+  <!-- analyst -->
+  <rect x="744" y="112" width="172" height="52" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="830" y="143" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">dashboard</text>
+
+  <rect x="744" y="206" width="172" height="60" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="830" y="234" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">lw-verify</text>
+  <text x="830" y="254" text-anchor="middle" font-size="11" fill="#788187">verdict + line</text>
+
+  <!-- write path -->
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none">
+    <line x1="128" y1="164" x2="128" y2="200" marker-end="url(#arrow)"/>
+    <line x1="212" y1="236" x2="262" y2="236" marker-end="url(#arrow)"/>
+    <line x1="348" y1="266" x2="348" y2="308" marker-end="url(#arrow)"/>
+    <line x1="830" y1="206" x2="830" y2="166" marker-end="url(#arrow)"/>
+  </g>
+  <path d="M380 206V170H588V204" fill="none" stroke="#3d9f96" stroke-width="1.5" marker-end="url(#arrow-accent)"/>
+  <text x="588" y="160" text-anchor="middle" font-size="11" fill="#3d9f96">anchor(root, seq range)</text>
+  <text x="840" y="190" font-size="11" fill="#788187">HTTP API</text>
+
+  <!-- verifier reads -->
+  <g stroke="#b3bbc1" stroke-opacity=".6" stroke-dasharray="5 4" fill="none">
+    <line x1="676" y1="236" x2="742" y2="236" marker-end="url(#arrow)"/>
+    <path d="M432 346H800V268" marker-end="url(#arrow)"/>
+    <path d="M128 270V412H860V268" marker-end="url(#arrow)"/>
+  </g>
+  <rect x="686" y="214" width="46" height="15" fill="#0d1011"/>
+  <text x="709" y="225" text-anchor="middle" font-size="11" fill="#788187">events</text>
+  <text x="588" y="338" text-anchor="middle" font-size="11" fill="#788187">stored records</text>
+  <text x="588" y="404" text-anchor="middle" font-size="11" fill="#788187">log lines on disk</text>
+</svg>

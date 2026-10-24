@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" width="960" height="470" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Five log lines hashed into one Merkle root, and three anchored batches folded into the contract's head hash</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#3d9f96"/>
+    </marker>
+  </defs>
+  <rect width="960" height="470" fill="#0d1011"/>
+
+  <!-- ===== one batch ===== -->
+  <text x="24" y="30" font-size="12" fill="#788187" letter-spacing="2">ONE BATCH · SEQ 41–45</text>
+
+  <!-- tree edges -->
+  <g stroke="#b3bbc1" stroke-opacity=".55" fill="none">
+    <line x1="470" y1="80" x2="300" y2="104"/>
+    <line x1="470" y1="80" x2="640" y2="220"/>
+    <line x1="300" y1="136" x2="164" y2="160"/>
+    <line x1="300" y1="136" x2="436" y2="160"/>
+    <line x1="164" y1="192" x2="96" y2="220"/>
+    <line x1="164" y1="192" x2="232" y2="220"/>
+    <line x1="436" y1="192" x2="368" y2="220"/>
+    <line x1="436" y1="192" x2="504" y2="220"/>
+  </g>
+
+  <!-- root -->
+  <rect x="410" y="44" width="120" height="36" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="470" y="67" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">root</text>
+
+  <!-- internal nodes -->
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="252" y="104" width="96" height="32"/>
+    <rect x="116" y="160" width="96" height="32"/>
+    <rect x="388" y="160" width="96" height="32"/>
+  </g>
+  <g font-size="12" fill="#b3bbc1" text-anchor="middle">
+    <text x="300" y="124">node</text>
+    <text x="164" y="180">node</text>
+    <text x="436" y="180">node</text>
+  </g>
+
+  <!-- leaves -->
+  <g fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="40" y="220" width="112" height="40"/>
+    <rect x="176" y="220" width="112" height="40"/>
+    <rect x="312" y="220" width="112" height="40"/>
+    <rect x="448" y="220" width="112" height="40"/>
+    <rect x="584" y="220" width="112" height="40"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#e7ebed" text-anchor="middle">
+    <text x="96" y="245">line 41</text>
+    <text x="232" y="245">line 42</text>
+    <text x="368" y="245">line 43</text>
+    <text x="504" y="245">line 44</text>
+    <text x="640" y="245">line 45</text>
+  </g>
+  <text x="594" y="172" font-size="11" fill="#788187">promoted,</text>
+  <text x="594" y="187" font-size="11" fill="#788187">never duplicated</text>
+
+  <text x="40" y="290" font-size="11" fill="#788187">leaf = SHA-256(0x00 | stream | seq | line)</text>
+  <text x="400" y="290" font-size="11" fill="#788187">node = SHA-256(0x01 | left | right)</text>
+
+  <!-- what goes on-chain -->
+  <line x1="530" y1="62" x2="758" y2="62" stroke="#3d9f96" stroke-width="1.5" marker-end="url(#arrow-accent)"/>
+  <text x="644" y="54" text-anchor="middle" font-size="11" fill="#3d9f96">only this leaves the host</text>
+  <rect x="760" y="40" width="176" height="92" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="848" y="66" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">batch 3</text>
+  <text x="848" y="90" text-anchor="middle" font-size="12" fill="#e7ebed">root · seq 41–45</text>
+  <text x="848" y="110" text-anchor="middle" font-size="12" fill="#b3bbc1">leaf count 5</text>
+
+  <path d="M848 132V306H703V350" fill="none" stroke="#3d9f96" stroke-width="1.5" marker-end="url(#arrow-accent)"/>
+
+  <!-- ===== the contract's head ===== -->
+  <text x="24" y="334" font-size="12" fill="#788187" letter-spacing="2">THE CONTRACT'S HEAD</text>
+
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="40" y="352" width="150" height="56"/>
+    <rect x="236" y="352" width="150" height="56"/>
+    <rect x="432" y="352" width="150" height="56"/>
+  </g>
+  <rect x="628" y="352" width="150" height="56" fill="#0f2523" stroke="#3d9f96"/>
+  <g font-size="14" font-weight="600" fill="#e7ebed" text-anchor="middle">
+    <text x="115" y="377">genesis</text>
+    <text x="311" y="377">batch 1</text>
+    <text x="507" y="377">batch 2</text>
+    <text x="703" y="377">batch 3</text>
+  </g>
+  <g font-size="11" fill="#788187" text-anchor="middle">
+    <text x="115" y="396">chain · contract</text>
+    <text x="311" y="396">seq 1–20</text>
+    <text x="507" y="396">seq 21–40</text>
+    <text x="703" y="396">seq 41–45</text>
+  </g>
+  <g stroke="#b3bbc1" stroke-opacity=".75">
+    <line x1="190" y1="380" x2="234" y2="380" marker-end="url(#arrow)"/>
+    <line x1="386" y1="380" x2="430" y2="380" marker-end="url(#arrow)"/>
+    <line x1="582" y1="380" x2="626" y2="380" marker-end="url(#arrow)"/>
+  </g>
+  <text x="796" y="385" font-size="12" fill="#e7ebed">= current head</text>
+
+  <text x="40" y="444" font-size="11" fill="#788187">head = keccak256(previous head, batch number, root, seq range, leaf count), computed by the contract</text>
+</svg>

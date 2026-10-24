@@ -1,0 +1,536 @@
+<!doctype html>
+<!-- Generated from _case-study.md. Edit the Markdown and regenerate; changes made here are overwritten. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LogWitness · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: Tamper-evident audit logs that use a public Ethereum contract as an outside witness, so an edited, deleted, inserted or reordered log line can be proven and located.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="LogWitness · case study">
+  <meta property="og:description" content="Tamper-evident audit logs that use a public Ethereum contract as an outside witness, so an edited, deleted, inserted or reordered log line can be proven and located.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">log-witness</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · EC8204 Blockchain and Cyber Security, University of Ruhuna</p>
+        <h1 class="rise" style="--i:1">LogWitness</h1>
+        <p class="cs-lede rise" style="--i:2">
+          An attacker with root on a server can rewrite its logs to hide what they did, and every
+          check that lives on that server falls with it. LogWitness hashes log lines into Merkle trees
+          and commits only each tree's 32-byte root to a public Ethereum contract that nobody
+          administers. A verifier on another machine can later prove whether any anchored line was
+          edited, deleted, inserted or reordered, and point to the exact line.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">Ethereum</li><li class="key">Solidity</li><li class="key">Go</li>
+          <li>Foundry</li><li>OpenZeppelin</li><li>SQLite</li><li>React</li><li>TypeScript</li><li>Docker</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/Malee-Fonseka/log-witness" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#how-it-works">How it works</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              LogWitness is a tamper-evidence system for server logs, built by a team of four for the Blockchain
+              and Cyber Security module at the University of Ruhuna. A small agent on each server follows a log
+              file, groups new lines into batches and hashes each batch into a Merkle tree. Only the tree's root,
+              a 32-byte fingerprint, and the range of line numbers it covers are sent to a smart contract on
+              Ethereum. The log itself never leaves the organisation.
+            </p>
+            <p>
+              Once a root is on the chain, nobody can change it, including someone with full control of the
+              server. A verifier running on a separate machine can then rebuild the fingerprints from whatever logs
+              remain and compare. If anything was edited, removed, added or shuffled after anchoring, the verifier
+              says so and names the line.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">32 B</span><span class="metrics__label">committed on-chain per batch, whatever its size</span></li>
+              <li><span class="metrics__val">39.6k</span><span class="metrics__label">gas per anchor, flat from 1 to 100,000 lines</span></li>
+              <li><span class="metrics__val">53%</span><span class="metrics__label">less gas than storing each batch in contract storage</span></li>
+              <li><span class="metrics__val">4</span><span class="metrics__label">kinds of tampering located to the exact line</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>
+              Logs are how incident responders reconstruct what happened, which makes them the first thing a
+              capable attacker cleans up. Clearing or editing logs is a standard technique, catalogued in MITRE
+              ATT&amp;CK as T1070, <em>Indicator Removal</em>. An attacker with root can open the authentication log,
+              delete the line that shows their login, and leave nothing behind that looks wrong.
+            </p>
+            <p>
+              The usual defences share one weakness: they live on a machine the attacker can reach, or they are run
+              by someone who can rewrite them.
+            </p>
+            <ul>
+              <li><strong>File permissions and append-only flags</strong> are enforced by the operating system the attacker now controls.</li>
+              <li>
+                <strong>A local hash chain or signed log</strong> keeps its key or its latest hash on the same machine.
+                Root can read the key, rewrite the history and recompute every hash.
+              </li>
+              <li>
+                <strong>A central log server</strong> moves the problem to another administrator. An attacker who
+                reaches that server, or an insider who runs it, can rewrite it the same way.
+              </li>
+              <li>
+                <strong>A permissioned blockchain</strong> has a small set of operators who can agree to rewrite it,
+                which brings back the trusted administrator the design is trying to remove.
+              </li>
+              <li>
+                <strong>Writing the logs themselves to a public chain</strong> would make them unchangeable, but it
+                costs gas for every line and publishes private data to the world.
+              </li>
+            </ul>
+            <p>
+              What was missing was an outside witness: something the attacker cannot log into, which holds just
+              enough to check the logs later without holding the logs. We set these requirements:
+            </p>
+            <ul>
+              <li>Detect <strong>modification, deletion, insertion and reordering</strong> of any line anchored before the compromise.</li>
+              <li><strong>Localise</strong> tampering to a specific line, or at worst to a specific batch.</li>
+              <li>Keep the on-chain cost <strong>constant per batch</strong>, however many lines it covers.</li>
+              <li>Keep log content <strong>private</strong>. Only hashes leave the organisation.</li>
+              <li>Treat the server, its disk, its database and its clock as hostile once compromised. <strong>The chain is the only thing we trust.</strong></li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">scope</p>
+              <p>
+                LogWitness detects tampering; it does not prevent it, and it does not restore what was deleted. It
+                cannot vouch for an application that writes false lines either, because integrity starts when a line
+                is written. Lines written after the last anchor and before the attack are unprotected, and that
+                window is bounded by the batch interval, 60 seconds by default.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 03 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>The system is split across three trust zones, and that split drives every other decision.</p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
+                <img src="images/architecture.svg" alt="Diagram of three zones. On the monitored host, the application writes a log file, the agent reads it, stores copies in a local proof store and anchors roots on the Ethereum contract. On the analyst machine, the verifier reads events from the contract, records from the proof store and lines from the log file, and serves a dashboard." width="960" height="460" loading="lazy">
+              </a>
+              <figcaption>Solid arrows are the write path; dashed arrows are what the verifier reads. Only the contract in the middle is trusted. The proof store and the log file are both checked against it before anything they say is believed.</figcaption>
+            </figure>
+
+            <ul>
+              <li>
+                <strong>The monitored host</strong> runs the application, its log file, the LogWitness agent and a local
+                proof store, a SQLite database holding copies of the lines and the batch history. Everything here is
+                assumed hostile after a compromise. The proof store is relied on for availability, never for
+                integrity: it makes verification faster and more precise, but nothing in it is believed until it has
+                been checked against the chain.
+              </li>
+              <li>
+                <strong>Ethereum</strong> runs one small contract, AuditAnchor. For each log stream it keeps a compact head
+                (which key may write, the next batch number, the last line number, the time of the last anchor and a
+                running hash of every batch so far) and records each batch in an event. It has no proxy, no upgrade
+                function and no administrator who can edit history.
+              </li>
+              <li>
+                <strong>The analyst's machine</strong> runs the verifier and a read-only dashboard, outside the attacker's
+                reach. All verification logic lives in the verifier; the dashboard only displays its verdicts.
+              </li>
+            </ul>
+            <p>
+              The agent is a single process that owns the whole pipeline, from following the file to submitting the
+              anchor. That gives one key holder, no queue between processes for data to get lost in, and one state
+              machine to reason about after a crash.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>Logs are private and high-volume, and every byte stored on Ethereum costs gas.</dd>
+                <dt>decision</dt>
+                <dd>Put only Merkle roots and line-number ranges on-chain. Keep the lines themselves in the organisation's own storage.</dd>
+                <dt>trade-off</dt>
+                <dd>On-chain cost is constant per batch and no content is exposed. In exchange, verification depends on off-chain data being available, so making that data untrusted but still useful became our problem rather than the chain's.</dd>
+              </dl>
+            </aside>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>A permissioned ledger or an upgradeable contract would have been easier to operate and to fix.</dd>
+                <dt>decision</dt>
+                <dd>Use a public, permissionless chain (a local Anvil node for development, the Sepolia testnet for the demo) and a contract that can never be upgraded.</dd>
+                <dt>trade-off</dt>
+                <dd>Nobody, including us, can change the rules or the history after the fact. Bugs cannot be patched in place: a fix is a new deployment, and old anchors stay verifiable at the old address. We offset that with full test coverage, invariant fuzzing and static analysis on every change.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ 04 HOW IT WORKS ============ -->
+          <section class="cs-sec" id="how-it-works">
+            <h2>How it works</h2>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Tail</strong><span>follow the log file, across rotations</span></li>
+                  <li class="flow__node"><strong>Batch</strong><span>close at 1,000 lines or 60 seconds</span></li>
+                  <li class="flow__node"><strong>Hash</strong><span>build an RFC 6962 Merkle tree</span></li>
+                  <li class="flow__node"><strong>Persist</strong><span>lines, batch and read position in one transaction</span></li>
+                  <li class="flow__node flow__node--key"><strong>Anchor</strong><span>the contract checks continuity and records the root</span></li>
+                </ol>
+              </div>
+              <figcaption>Every line passes through the same five steps inside the agent. Only the last one touches the chain.</figcaption>
+            </figure>
+
+            <h3>Turning a line into a fingerprint</h3>
+            <p>
+              Each line is wrapped in a fixed, versioned record before it is hashed: an encoding version, the stream
+              it belongs to, its sequence number, its length and its raw bytes. Nothing is trimmed or normalised, and
+              long lines are never truncated, because the verifier must be able to reproduce exactly the same bytes
+              from the file on disk.
+            </p>
+            <p>
+              The sequence number is what makes deletion visible. Hashing content alone can show that a line changed,
+              but not that one is missing. Numbering every line from 1 with no gaps, and binding that number into the
+              hash, turns a deleted line into a hole that cannot be hidden.
+            </p>
+            <p>
+              What the record leaves out matters just as much: it has <strong>no timestamp</strong>. The agent's clock is
+              under the attacker's control after a compromise, and the time a line was read is stored nowhere except
+              the local database. If it were part of the hash, losing that database would make the log file impossible
+              to verify. Order comes from the sequence number, trusted time comes from the block the anchor lands in,
+              and the event's own time is already inside the log line.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/anchoring.svg" target="_blank" rel="noopener">
+                <img src="images/anchoring.svg" alt="Diagram of five log lines, sequence numbers 41 to 45, hashed into a Merkle tree. The first four pair up into two nodes and then one node; the fifth line is promoted directly to the root. The root and the sequence range go to the contract as batch 3, which is chained after genesis, batch 1 and batch 2 to form the current head." width="960" height="470" loading="lazy">
+              </a>
+              <figcaption>One batch of five lines becomes one root. The unpaired fifth line is promoted rather than duplicated. Every anchored batch is then folded into a single head hash that the contract computes itself.</figcaption>
+            </figure>
+
+            <h3>Merkle trees, done by the standard</h3>
+            <p>
+              Batches are hashed into Merkle trees exactly as RFC 6962 (Certificate Transparency) specifies, because
+              the details are where tree designs go wrong:
+            </p>
+            <ul>
+              <li>
+                <strong>Leaves and internal nodes are hashed with different prefixes.</strong> Without that, an attacker can
+                pass off an internal node as a leaf, a second-preimage attack.
+              </li>
+              <li>
+                <strong>Unbalanced trees are split at the largest power of two</strong>, and an unpaired node is promoted,
+                never duplicated. Duplicating the last node is the root cause of Bitcoin's CVE-2012-2459.
+              </li>
+              <li>
+                <strong>Inclusion proofs carry the tree size.</strong> In an unbalanced tree, a leaf's position alone does
+                not say which levels have a sibling.
+              </li>
+            </ul>
+            <p>
+              The tree exists twice: in Go for the agent and verifier, and in Solidity for optional on-chain checks.
+              Two implementations of one algorithm drift apart quietly, and here drift would surface as a false tamper
+              alarm. So the format is specified in prose first, and both implementations must pass the same
+              known-answer test vectors. Those vectors are generated from an independent reference library, never
+              from our own code, so the tests cannot simply agree with themselves.
+            </p>
+
+            <h3>The contract as witness</h3>
+            <p>The contract refuses to record a batch that would break the history. An anchor is rejected unless all four rules hold:</p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">rule</th><th scope="col">what it guarantees</th><th scope="col">what it stops</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>the sender is the stream's registered agent</td><td>only that host's key writes to that stream</td><td>foreign or revoked writers</td></tr>
+                  <tr><td>the batch number is exactly the next one</td><td>batches land in order, once each</td><td>gaps, replays, duplicate submissions after a crash</td></tr>
+                  <tr><td>the batch starts right after the last anchored line</td><td>line ranges join up with no overlap</td><td>sequence gaps or overlaps between batches</td></tr>
+                  <tr><td>the line range and line count agree</td><td>the range is honest, and empty batches are valid</td><td>ranges that claim more or fewer lines than they hold</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Because the ledger enforces these rules, a buggy or compromised agent cannot produce a history that
+              merely looks continuous. The chain refuses to record the discontinuity.
+            </p>
+            <p>
+              On top of that, the contract keeps a <strong>head hash</strong>. Each anchor folds the previous head together
+              with the new batch's number, root, line range and count. The contract computes this itself, so the agent
+              never supplies a value it could get wrong. It also lets the verifier catch a dishonest blockchain node:
+              replay every anchored batch from the event log, recompute the head, and compare it with the single value
+              the contract returns. A node that hides or swaps a batch cannot make those two match.
+            </p>
+            <p>
+              Authority is per stream, so a key stolen from one server cannot write to another server's log. A
+              registrar can register streams and rotate or revoke an agent's key, but cannot touch anything already
+              anchored. Batch details live in events rather than contract storage, which keeps storage to the small
+              per-stream head and roughly halves the gas cost of every anchor.
+            </p>
+
+            <h3>Making silence detectable</h3>
+            <p>
+              A batch closes when it reaches 1,000 lines or when 60 seconds pass, whichever comes first. If 60 seconds
+              pass with no new lines, the agent anchors an <strong>empty heartbeat batch</strong> anyway. The chain therefore
+              always holds a recent anchor, and if none arrives within three intervals the verifier raises a
+              missing-heartbeat alarm. An attacker who kills the agent to stop the anchoring creates exactly the
+              evidence they wanted to avoid.
+            </p>
+
+            <h3>Surviving crashes and chain reorganisations</h3>
+            <p>
+              The agent has to stay correct through crashes, restarts and blocks that get reorganised away, without
+              leaving gaps or anchoring anything twice.
+            </p>
+            <ul>
+              <li>
+                When a batch closes, its lines, its batch record and the file read position are written in <strong>one
+                database transaction</strong>. A crash either loses the whole unsaved batch, which is re-read from the old
+                position and given the same sequence numbers, or keeps all of it. There is no state in between.
+              </li>
+              <li>At most <strong>one anchor transaction is in flight</strong> per stream; later batches wait their turn.</li>
+              <li>
+                <strong>The chain wins on restart.</strong> The agent reads the contract's head, marks everything already
+                anchored as done, and resubmits the rest in order. Because the batch number must be exactly the next
+                one, a duplicate submission is rejected harmlessly instead of being recorded twice.
+              </li>
+              <li>
+                An anchor counts as <strong>confirmed</strong> once it is three blocks deep, which the live demo uses, and
+                <strong>finalised</strong> once the chain finalises it, which is what evidence relies on.
+              </li>
+            </ul>
+
+            <h3>Verifying in two stages</h3>
+            <p>Verification runs away from the host and believes nothing it reads there until the chain vouches for it.</p>
+            <ol>
+              <li>
+                <strong>Authenticate the proof store.</strong> Rebuild every batch root from the stored lines and compare it
+                with the anchored root, then recompute the head hash and compare it with the contract's. If everything
+                matches, the store is a faithful copy of what was anchored.
+              </li>
+              <li>
+                <strong>Compare the log file with the authenticated store.</strong> Each mismatch is classified as an edit,
+                deletion, insertion or reordering and reported with its exact sequence number.
+              </li>
+            </ol>
+            <p>
+              If the store is missing or fails the first stage, the verifier falls back to <strong>the log file and the
+              chain alone</strong>. It reads the file in order, takes as many lines as each batch says it holds, and
+              rebuilds each root. That can only localise tampering to the first failing batch rather than a single
+              line, but it still works, and it works only because the timestamp was kept out of the hash. The local
+              database is useful, but the system never depends on it for integrity.
+            </p>
+            <p>Every attack in the threat model is also an automated end-to-end test with an expected verdict:</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">attack</th><th scope="col">what the verifier reports</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>none (control)</td><td>intact</td></tr>
+                  <tr><td>edit one line</td><td>tampered · line modified · that line</td></tr>
+                  <tr><td>delete one line</td><td>tampered · line deleted · that line</td></tr>
+                  <tr><td>insert a forged line</td><td>tampered · line inserted · its position</td></tr>
+                  <tr><td>swap two lines</td><td>tampered · lines reordered · both lines</td></tr>
+                  <tr><td>truncate the file</td><td>tampered · every missing line</td></tr>
+                  <tr><td>edit the local database</td><td>tampered · store fails authentication · log file still shown intact</td></tr>
+                  <tr><td>kill the agent</td><td>tampered · missing heartbeat</td></tr>
+                  <tr><td>roll the clock back</td><td>intact: time is not in the hash, so there is no false alarm</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 05 RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>Every number here comes from a benchmark script in the repository rather than being typed by hand.</p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">39,645</span><span class="metrics__label">gas per anchor, batch data in events</span></li>
+              <li><span class="metrics__val">84,380</span><span class="metrics__label">gas per anchor, batch data in storage</span></li>
+              <li><span class="metrics__val">$0.13</span><span class="metrics__label">per anchor on Ethereum mainnet</span></li>
+              <li><span class="metrics__val">50k</span><span class="metrics__label">lines per second ingested without falling behind</span></li>
+            </ul>
+
+            <ul>
+              <li>
+                <strong>Constant cost.</strong> Gas per anchor barely moves with batch size: 39,261 for a one-line batch
+                and 39,297 for a 100,000-line batch. An empty heartbeat costs 39,621.
+              </li>
+              <li>
+                <strong>Events beat storage.</strong> Keeping batch details in events instead of contract storage cut a
+                routine anchor from 84,380 to 39,645 gas, 53% less. Moving the rarely changing agent address into its
+                own storage slot means each anchor writes two slots instead of three, which saved a further 7% along
+                the way.
+              </li>
+              <li>
+                <strong>Cost follows time, not volume.</strong> At fees observed on 29 September 2026, one anchor costs
+                about $0.13 on mainnet. With a batch at least every 60 seconds that is 1,440 anchors and roughly $190 a
+                day per stream, whether the server writes ten lines or ten million. A ten-minute interval would bring
+                that to about $19, at the price of a ten times wider unprotected window. That interval is the real dial
+                between cost and exposure.
+              </li>
+              <li>
+                <strong>Hashing is not the bottleneck.</strong> A 1,000-line tree builds in about 0.13 ms, roughly 7.5
+                million lines per second. A proof that one line belongs to a 1,000-line batch is 10 hashes, 320 bytes.
+              </li>
+              <li><strong>The agent keeps up</strong> with 50,000 lines per second in a five-second burst and falls behind at 100,000.</li>
+              <li>
+                <strong>Checking a proof on-chain</strong> is optional and costs about 31,600 gas for a 1,024-line batch,
+                adding roughly 2,000 gas each time the batch size doubles.
+              </li>
+              <li>
+                <strong>Contract quality.</strong> 100% line, statement, branch and function coverage; the four continuity
+                rules hold under randomised invariant fuzzing; Slither static analysis reports no findings.
+              </li>
+            </ul>
+
+            <div class="gallery">
+              <figure class="figure">
+                <a class="figure__media" href="images/dashboard-timeline.png" target="_blank" rel="noopener">
+                  <img src="images/dashboard-timeline.png" alt="The dashboard timeline view for stream auth, listing eight batches with their sequence ranges, roots, transactions, block numbers and confirmation levels. Batches 3 and 5 are highlighted as tampered and batch 7 is a heartbeat." width="1280" height="900" loading="lazy">
+                </a>
+                <figcaption>Timeline: every anchored batch with its line range, root, transaction and confirmation level. Two batches are flagged as tampered and one is a heartbeat.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/dashboard-verdict.png" target="_blank" rel="noopener">
+                  <img src="images/dashboard-verdict.png" alt="The dashboard verdict view. The proof store is intact against the chain; the log file on disk shows one edited line at sequence 217 and two deleted lines at 412 and 413, each marked on a grid of its batch." width="1280" height="900" loading="lazy">
+                </a>
+                <figcaption>Verdict: the proof store checks out against the chain, while the log file on disk has one edited and two deleted lines, each named by sequence number.</figcaption>
+              </figure>
+            </div>
+
+            <aside class="callout">
+              <p class="callout__label">status</p>
+              <p>
+                The contract, the record and Merkle libraries, the agent pipeline and the benchmarks are complete. The
+                verifier's end-to-end commands, the Sepolia deployment and the full attack run are still being
+                finished, so the attack table above is the acceptance target rather than a measured result, and the
+                screenshots show the dashboard on fixture data.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 06 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li>
+                <strong>Decide what you trust before designing anything.</strong> Writing down early that the host, its
+                database and its clock are all hostile after a compromise settled most later arguments: the database
+                became disposable, time left the hash, and the chain became the only judge.
+              </li>
+              <li>
+                <strong>Push invariants to the party that cannot be compromised.</strong> Because the contract enforces
+                continuity and computes the head hash itself, a buggy agent fails loudly instead of quietly writing a
+                history that looks fine.
+              </li>
+              <li>
+                <strong>What you leave out of a hash matters as much as what you put in.</strong> Dropping a single
+                timestamp field is what lets a log be verified after its database is gone.
+              </li>
+              <li>
+                <strong>Two implementations need an independent referee.</strong> With test vectors from a reference
+                library, the Go and Solidity trees are checked against the same answers, so a disagreement shows up in
+                the build rather than as a false alarm in front of an analyst.
+              </li>
+              <li>
+                <strong>Freeze the interfaces first.</strong> Agreeing the record format, the contract interface and the
+                database schema at the start let four people build in parallel without waiting on one another.
+              </li>
+              <li>
+                <strong>Detection is not recovery.</strong> LogWitness can prove that a line is gone and say where, but not
+                bring it back. A real deployment would pair it with off-host replication of the logs and the proof
+                store, which we left as future work.
+              </li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
