@@ -1,0 +1,757 @@
+<!doctype html>
+<!-- Hand-written: this case study has no _case-study.md, so edit this file directly. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloud Auction Platform · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: reviewing a Spring Boot auction system and redesigning it as a zero-cost, real-time NestJS microservice platform on Docker and the AWS free tier.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Cloud Auction Platform · case study">
+  <meta property="og:description" content="Reviewing a Spring Boot auction system and redesigning it as a zero-cost, real-time NestJS microservice platform on Docker and the AWS free tier.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">clouds-auction-platform</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · EC7204 Cloud Computing · architecture review and rebuild</p>
+        <h1 class="rise" style="--i:1">Cloud Auction Platform</h1>
+        <p class="cs-lede rise" style="--i:2">
+          An online auction platform built as cloud-native microservices: NestJS services behind one gateway,
+          RabbitMQ events between them, live bidding over WebSockets, and auctions that start, close and pick a
+          winner on their own. It began as a review of the first version, which found 26 issues, among them a race
+          that could accept two conflicting bids. The rebuild addresses every one, and the whole system is designed
+          to run from one command, on a laptop or the AWS free tier, at no cost.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">NestJS</li><li class="key">React</li><li class="key">TypeScript</li><li class="key">PostgreSQL</li><li class="key">RabbitMQ</li><li>Redis</li><li>BullMQ</li><li>Socket.IO</li><li>Prisma</li><li>Docker Compose</li><li>Kubernetes (k3d)</li><li>Terraform</li><li>AWS</li><li>GitHub Actions</li><li>OpenTelemetry</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/Malee-Fonseka/clouds-auction-platform" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">Reviewing v1</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#bidding">Placing a bid</a></li>
+              <li><a href="#lifecycle">Auctions that run themselves</a></li>
+              <li><a href="#events">Events and data</a></li>
+              <li><a href="#security">Security</a></li>
+              <li><a href="#deployment">Running it for free</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ SECTION: OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              Version 1 of the platform was a Spring Boot microservice system built for the EC7204 cloud computing
+              module: five Spring Boot applications, RabbitMQ, Redis, PostgreSQL, Prometheus and Grafana, deployed to
+              Azure Container Apps. Its patterns were sound. It had a gateway with circuit breakers, a database per
+              service and a transactional outbox. The business logic and security, though, had gaps that a live demo
+              would expose quickly.
+            </p>
+            <p>
+              Version 2 keeps that shape and rebuilds the substance in TypeScript. It has an API gateway, user, auction,
+              bid and notification services, with a wallet service as stretch scope. A React single-page app receives
+              live updates, and the deployment costs nothing to run. This case study covers the review, the
+              architecture, the three hardest problems (concurrent bids, auctions driven by time, and reliable events),
+              and how the system is shipped.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">26</span><span class="metrics__label">issues found reviewing v1, 6 of them high severity</span></li>
+              <li><span class="metrics__val">1</span><span class="metrics__label">command from a fresh clone to a seeded, working demo</span></li>
+              <li><span class="metrics__val">≈1.1 GB</span><span class="metrics__label">memory budget for the core stack</span></li>
+              <li><span class="metrics__val">US$0</span><span class="metrics__label">to run locally or on the AWS free tier</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ SECTION: PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>Reviewing v1</h2>
+            <p>
+              Before designing anything new, I reviewed every branch of v1 and recorded what was actually built, what
+              worked and what was broken, with a file and line reference for each finding. The diagram below shows the
+              v1 containers with each finding placed on the part of the system it affects.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/as-is-v1.png" target="_blank" rel="noopener">
+                <img src="images/as-is-v1.png" alt="The v1 system as built: a static UI served by a Spring Cloud gateway, four Spring Boot services each with its own database, RabbitMQ and Redis, with red finding markers F1 to F26 on the parts they affect." width="2160" height="1835" loading="lazy">
+              </a>
+              <figcaption>v1 as built. Red markers are the findings; the dashed red boxes (a payment service, Zipkin, MongoDB) were configured or designed but never actually ran.</figcaption>
+            </figure>
+
+            <p>The most serious findings were:</p>
+            <ul>
+              <li><strong>Authorisation holes.</strong> The gateway protected <code>/api/auctions/create/**</code>, but the real endpoint was <code>POST /api/auctions</code>, so any logged-in user could create auctions. Any user could also start or close any auction, and the seller id was read from the request body.</li>
+              <li><strong>No auction lifecycle.</strong> Nothing started or ended auctions at their scheduled times, and no winner was ever chosen. A "Start" button in the UI did the job by hand.</li>
+              <li><strong>A race condition.</strong> The highest-bid check and the insert were not serialised, so two concurrent bids could both be accepted, including equal or lower amounts.</li>
+              <li><strong>Hardcoded admin credentials</strong> were committed to the source code.</li>
+            </ul>
+            <p>
+              Below those sat a long tail: tokens in OAuth redirect URLs, stored XSS through <code>innerHTML</code>,
+              users silently logged out after 15 minutes because the UI never refreshed its session, polling everywhere,
+              and a schema managed by <code>ddl-auto: update</code> with no migrations. The v1 design diagrams also
+              described lots, payments and settlement that were never built. v2 treats those diagrams as requirements.
+            </p>
+
+            <h3>Constraints for the rebuild</h3>
+            <ul>
+              <li><strong>Stack:</strong> NestJS, React, pnpm and Docker; Kubernetes only where it adds value; AWS for the cloud.</li>
+              <li><strong>No recurring cost:</strong> no EKS, load balancer, NAT gateway, managed broker or managed cache, because all of them are billed by the hour.</li>
+              <li><strong>Small footprint:</strong> the whole stack must run on an 8 GB laptop and on a 2 GiB AWS t4g.small.</li>
+              <li><strong>Portable:</strong> Windows (WSL2), macOS on Apple Silicon and Intel, and Linux.</li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">note</p>
+              <p>
+                v2 is a working <em>demonstration</em> of cloud-native patterns, not a production system. A single EC2
+                instance, one PostgreSQL server and seeded demo data are deliberate trade-offs that keep the cost at zero,
+                and each one is documented where it matters.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ SECTION: ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              Bidders, sellers and administrators all use one web app. Google sign-in, e-mail delivery and a payment
+              provider are optional integrations that switch off when they are not configured, so a laptop demo needs
+              no external accounts.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/c4-context.png" target="_blank" rel="noopener">
+                <img src="images/c4-context.png" alt="C4 system context diagram: bidders, sellers and administrators use the auction platform, which optionally connects to Google Identity, an e-mail service and a payment provider, with GitHub hosting code, CI/CD and images." width="2160" height="1362" loading="lazy">
+              </a>
+              <figcaption>System context (C4 level 1). Every external system except GitHub is optional.</figcaption>
+            </figure>
+
+            <p>The design follows a short list of principles:</p>
+            <ul>
+              <li><strong>Right-sized microservices</strong> split along the v1 bounded contexts, with one database and one database role per service.</li>
+              <li><strong>Synchronous calls only where an answer is needed now</strong> (gateway proxying, bid validation, wallet capture). Everything else goes through events.</li>
+              <li><strong>At-least-once and idempotent everywhere:</strong> an outbox on the producer, an inbox on the consumer, idempotency keys on commands.</li>
+              <li><strong>One write path per aggregate.</strong> Every change to an auction goes through one service and its state machine, whether it comes from HTTP, a timer or an event.</li>
+              <li><strong>Secure by default:</strong> a deny-by-default route table, identity only from verified tokens, and no secrets in images.</li>
+              <li><strong>The same artefacts everywhere:</strong> the same images and configuration model in Compose, Kubernetes and AWS.</li>
+            </ul>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/c4-containers.png" target="_blank" rel="noopener">
+                <img src="images/c4-containers.png" alt="C4 container diagram: a React SPA calls an API gateway, which routes to user, auction, bid, wallet and notification services. Each service owns a PostgreSQL database and exchanges events through RabbitMQ; Redis holds ephemeral state; Prometheus, Grafana and Jaeger form an optional observability stack." width="2160" height="2081" loading="lazy">
+              </a>
+              <figcaption>Containers (C4 level 2). The gateway is the only public entry point. Solid lines are synchronous calls, dashed purple lines are AMQP events and WebSocket pushes, and the wallet service is stretch scope.</figcaption>
+            </figure>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt><dd>The course asks for cloud-native patterns, and v1's design called for separate lot and payment services. Seven or more services would be a lot to operate for a small team and a 2 GiB instance.</dd>
+                <dt>decision</dt><dd>A gateway plus four core services, with wallet as stretch scope. Lots live inside the auction service because they share its lifecycle and its transactions. Each service has its own database on one PostgreSQL server.</dd>
+                <dt>trade-off</dt><dd>Fewer moving parts and real isolation between services. The shared database server is a single point of failure, which is accepted for a demo.</dd>
+              </dl>
+            </aside>
+
+            <h3>Why TypeScript</h3>
+            <p>
+              Moving from Java to TypeScript was partly about using one language end to end, but mostly about memory. A
+              Node service uses roughly 80–150 MB, against 300–500 MB for each Spring Boot service, and that difference
+              decides whether six services plus infrastructure fit on a 2 GiB instance. A pnpm and Turborepo monorepo
+              holds every app, and a shared <code>contracts</code> package of zod schemas validates API input, types the
+              SPA and defines every event payload from one source.
+            </p>
+
+            <h3>Inside the services</h3>
+            <p>
+              Each component maps directly to a NestJS module, so the component diagrams double as the module plan.
+              Inside a service, dependencies point one way: controllers and consumers call application services, which
+              call a pure domain layer that imports nothing from Nest or Prisma. Lint rules enforce those boundaries.
+            </p>
+
+            <div class="gallery">
+              <figure class="figure">
+                <a class="figure__media" href="images/c4-comp-gateway.png" target="_blank" rel="noopener">
+                  <img src="images/c4-comp-gateway.png" alt="Gateway component diagram: request-context middleware, JWT authentication guard, route authoriser and rate-limit guard feed a proxy router with circuit breakers, alongside a separate real-time path for Socket.IO." width="2160" height="1298" loading="lazy">
+                </a>
+                <figcaption>Gateway: middleware, then guards, then the proxy, with an independent real-time path.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/c4-comp-auction.png" target="_blank" rel="noopener">
+                  <img src="images/c4-comp-auction.png" alt="Auction service component diagram: HTTP controllers, BullMQ lifecycle jobs and RabbitMQ event consumers all call one AuctionService that contains the state machine." width="2160" height="1520" loading="lazy">
+                </a>
+                <figcaption>Auction service: HTTP, scheduled jobs and events all go through one <code>AuctionService</code>.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/c4-comp-bid.png" target="_blank" rel="noopener">
+                  <img src="images/c4-comp-bid.png" alt="Bid service component diagram: PlaceBidUseCase gathers auction rules, takes a lock, evaluates a pure BidPolicy and commits the bid with an outbox event." width="2160" height="1469" loading="lazy">
+                </a>
+                <figcaption>Bid service: <code>PlaceBidUseCase</code> is the only write path.</figcaption>
+              </figure>
+            </div>
+          </section>
+
+          <!-- ============ SECTION: BIDDING ============ -->
+          <section class="cs-sec" id="bidding">
+            <h2>Placing a bid</h2>
+            <p>
+              Bidding is the hot path, and it is the part v1 got most wrong. In v2 one use case handles every bid. It
+              gathers the facts, takes a lock, runs a pure policy, and commits the bid and its event together.
+            </p>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Gateway</strong><span>rate limit, verify the JWT, check the role</span></li>
+                  <li class="flow__node"><strong>Idempotency + rules</strong><span>replay a known key; read the rules through a 5 s cache</span></li>
+                  <li class="flow__node flow__node--key"><strong>Lock + policy</strong><span>one lock per auction; rules checked against database time</span></li>
+                  <li class="flow__node"><strong>Commit</strong><span>bid, outbox row and idempotency record in one transaction</span></li>
+                  <li class="flow__node"><strong>Fan-out</strong><span>outbid notice, price projection, live push</span></li>
+                </ol>
+              </div>
+              <figcaption>The bidder gets an answer in one round trip. Everything after the commit happens asynchronously.</figcaption>
+            </figure>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/seq-place-bid.png" target="_blank" rel="noopener">
+                <img src="images/seq-place-bid.png" alt="Sequence diagram for placing a bid: the SPA posts to the gateway, the bid service checks the idempotency key, fetches bidding rules from the auction service, takes a PostgreSQL advisory lock, evaluates the policy, then commits or rolls back; afterwards the outbox relay publishes bid.placed to RabbitMQ for the notification service, the auction service and the gateway's WebSocket push." width="2160" height="2168" loading="lazy">
+              </a>
+              <figcaption>The full bid sequence. Steps 9–12 are the fix for the v1 race; steps 16–21 are the asynchronous fan-out.</figcaption>
+            </figure>
+
+            <h3>Serialising competing bids</h3>
+            <p>
+              v1 read the current top bid and then inserted the new one, so two requests could read the same top bid and
+              both succeed. v2 opens a transaction and takes a PostgreSQL advisory lock keyed on the auction. Competing
+              bids on the same auction wait for microseconds, and bids on other auctions are not affected. The time rule
+              uses the database's <code>now()</code> inside the lock, so the server clock is the only clock that counts.
+            </p>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>bid-service · PlaceBidUseCase transaction</span><span>sql · design sketch</span></figcaption>
+<pre><code><span class="tok-k">BEGIN</span>;
+<span class="tok-c">-- one lock per auction, released automatically at COMMIT or ROLLBACK</span>
+<span class="tok-k">SELECT</span> <span class="tok-f">pg_advisory_xact_lock</span>(<span class="tok-f">hashtext</span>(:auction_id));
+
+<span class="tok-c">-- read the current top bid while holding the lock</span>
+<span class="tok-k">SELECT</span> amount <span class="tok-k">FROM</span> bids
+ <span class="tok-k">WHERE</span> auction_id = :auction_id
+ <span class="tok-k">ORDER BY</span> amount <span class="tok-k">DESC LIMIT</span> <span class="tok-n">1</span>;
+
+<span class="tok-c">-- BidPolicy (pure TypeScript): status = IN_PROG, now() &lt; end_at,</span>
+<span class="tok-c">-- amount &gt;= max(starting_price, top + min_increment), bidder &lt;&gt; seller</span>
+
+<span class="tok-k">INSERT INTO</span> bids             (...) <span class="tok-k">VALUES</span> (...);
+<span class="tok-k">INSERT INTO</span> outbox_events    (...) <span class="tok-k">VALUES</span> (<span class="tok-s">'bid.placed'</span>, ...);
+<span class="tok-k">INSERT INTO</span> idempotency_keys (...) <span class="tok-k">VALUES</span> (...);
+<span class="tok-k">COMMIT</span>;</code></pre>
+            </figure>
+
+            <p>
+              Each click in the SPA sends a fresh <code>Idempotency-Key</code>, so a retried request returns the original
+              result instead of creating a second bid. When a rule fails, the transaction rolls back and the API returns a
+              409 with a stable error code and the minimum next bid, which lets the UI offer a one-click "bid minimum".
+              If the auction service is down and no cached rules are available, the bid is refused with a 503 within a
+              second. Bidding fails closed rather than guessing.
+            </p>
+            <p>
+              The acceptance test for all this is blunt. k6 fires 200 concurrent bids at one auction, and a SQL assertion
+              checks that no accepted bid breaks the increment rule and that the final price equals the highest accepted
+              bid.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt><dd>Concurrent bids on one auction could both pass the highest-bid check (v1 finding F12).</dd>
+                <dt>decision</dt><dd>A per-auction PostgreSQL advisory lock inside the bid transaction.</dd>
+                <dt>trade-off</dt><dd>The simplest correct fix, with no extra infrastructure. Bids on one auction are serialised, which costs microseconds each, so throughput grows with the number of live auctions rather than the number of bidders.</dd>
+              </dl>
+            </aside>
+
+            <aside class="callout">
+              <p class="callout__label">known trade-off</p>
+              <p>
+                The bid service reads auction rules through a 5-second cache, and a halt evicts it by event. In the worst
+                case, a bid placed within 5 seconds of an admin halt is still accepted. That is documented, and setting
+                <code>RULES_CACHE_TTL_MS=0</code> removes it at the cost of one extra call per bid.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ SECTION: LIFECYCLE ============ -->
+          <section class="cs-sec" id="lifecycle">
+            <h2>Auctions that run themselves</h2>
+            <p>
+              In v1, nothing moved an auction at its start or end time, and no winner was ever chosen. v2 makes time a
+              server concern. The auction's lifecycle is an explicit state machine, implemented as a pure function from
+              <code>(state, command)</code> to <code>(newState, effects)</code>, with a unit test for every transition.
+              An invalid transition returns a 409.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/sm-auction.png" target="_blank" rel="noopener">
+                <img src="images/sm-auction.png" alt="Auction state machine with states OPENED, IN_PROG, HALTED, POSTED, ENDED and CLOSED, and numbered transitions 1 to 11 between them." width="2160" height="1197" loading="lazy">
+              </a>
+              <figcaption>The auction lifecycle. Transitions 1–9 keep the numbers from the v1 design; 10 and 11 (green) are new in v2. Bids are accepted only in <code>IN_PROG</code> and only before <code>endAt</code>.</figcaption>
+            </figure>
+
+            <p>
+              When a seller creates or edits an auction, the service schedules two BullMQ delayed jobs,
+              <code>auction:{id}:start</code> and <code>auction:{id}:end</code>. Their ids are deterministic, so an edit
+              replaces them safely. At <code>endAt</code>, the auction service closes bidding and publishes an event. The
+              bid service ranks the distinct bidders (ties go to the earliest bid) and publishes the ranking, and the
+              auction service decides the outcome:
+            </p>
+            <ul>
+              <li>no bids, or the reserve price not met → <code>CLOSED</code>, and the lot is revoked;</li>
+              <li>otherwise → <code>ENDED</code>, the top-ranked bidder wins and the lot is sold;</li>
+              <li>with the wallet feature on → the settlement saga described below.</li>
+            </ul>
+            <p>
+              Timers alone are not enough. If Redis is flushed or a worker crashes, a job can be lost, so a reconciler
+              runs every 60 seconds. It finds auctions that should have started or closed and replays the transition
+              through the same code path, which makes the lifecycle self-healing.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/seq-lifecycle.png" target="_blank" rel="noopener">
+                <img src="images/seq-lifecycle.png" alt="Sequence diagram of the auction lifecycle: BullMQ jobs trigger start and end transitions, the bid service publishes a ranking, the auction service decides ENDED or CLOSED, bids are settled, notifications go out, and a reconciler repairs missed transitions." width="2160" height="2177" loading="lazy">
+              </a>
+              <figcaption>Lifecycle and winner determination, including the reconciler that catches anything the jobs miss.</figcaption>
+            </figure>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt><dd>Auctions must start and end on time without anyone pressing a button (v1 finding F13).</dd>
+                <dt>decision</dt><dd>BullMQ delayed jobs for precise timing, plus a reconciler as a safety net.</dd>
+                <dt>trade-off</dt><dd>Redis becomes important for timeliness, but not for correctness: losing it delays a transition by at most a minute and never loses one.</dd>
+              </dl>
+            </aside>
+
+            <h3>Lots, bids and accounts</h3>
+            <p>
+              The other three state machines also come from the v1 design, which v1 never enforced. A bid's
+              "leading" or "outbid" status is derived from the ranking, so outbidding someone never updates existing
+              rows. When an account leaves <code>ACTIVE</code>, every session it holds is revoked.
+            </p>
+
+            <div class="gallery gallery--wide">
+              <figure class="figure">
+                <a class="figure__media" href="images/sm-lot.png" target="_blank" rel="noopener">
+                  <img src="images/sm-lot.png" alt="Lot state machine: IDLE to AUTHORIZED when attached to an auction, then SOLD or REVOKED, with REVOKED returning to IDLE on relist." width="2160" height="834" loading="lazy">
+                </a>
+                <figcaption>Lot: sold when its auction ends, revoked when it closes, and relistable.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/sm-bid.png" target="_blank" rel="noopener">
+                  <img src="images/sm-bid.png" alt="Bid state machine: ACTIVE to SUCCESS for the winning bid, or to CLOSED for all other bids." width="2160" height="609" loading="lazy">
+                </a>
+                <figcaption>Bid: settled when the auction finishes. In v1, bids stayed <code>ACTIVE</code> forever.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/sm-user.png" target="_blank" rel="noopener">
+                  <img src="images/sm-user.png" alt="User account state machine with ACTIVE, INACTIVE and SUSPENDED states and numbered transitions between them." width="2160" height="669" loading="lazy">
+                </a>
+                <figcaption>User account: status is enforced at login, token refresh, bidding and the gateway.</figcaption>
+              </figure>
+            </div>
+
+            <h3>Settlement (stretch scope)</h3>
+            <p>
+              With the wallet feature on, the outcome becomes a saga taken straight from v1's "winning an auction" flow
+              chart. The service tries to capture the winning amount from the winner's wallet. If the balance is short,
+              the auction moves to <code>POSTED</code> with a top-up deadline and a payment reminder. If the deadline
+              passes, the defaulter is suspended and the next-ranked bidder becomes the pending winner. The saga's state
+              lives on the auction row, so it survives restarts, and the whole feature sits behind a flag so it cannot
+              put the core demo at risk.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/seq-settlement.png" target="_blank" rel="noopener">
+                <img src="images/seq-settlement.png" alt="Sequence diagram of the settlement saga: capture from the wallet, on failure move to POSTED with a deadline, retry on top-up, and on deadline suspend the defaulter and try the next candidate." width="2160" height="1833" loading="lazy">
+              </a>
+              <figcaption>The settlement saga: compensating steps (suspension, next candidate) instead of a distributed transaction.</figcaption>
+            </figure>
+          </section>
+
+          <!-- ============ SECTION: EVENTS ============ -->
+          <section class="cs-sec" id="events">
+            <h2>Events and data</h2>
+            <p>
+              Services talk through RabbitMQ: one topic exchange per producing service, one durable queue per consumer,
+              and about 20 event types. A failed message goes to a retry queue with a 5-second delay, up to five
+              attempts, and then to a dead-letter queue, so a poison message never blocks the others.
+            </p>
+
+            <h3>Outbox and inbox</h3>
+            <p>
+              A service never publishes directly from a request. The use case writes its business rows and an
+              <code>outbox_events</code> row in the same transaction. A relay polls every 500 ms with
+              <code>FOR UPDATE SKIP LOCKED</code>, publishes with publisher confirms and marks the row as sent, which is
+              safe with several replicas. On the consuming side, the handler first inserts the event id into an
+              <code>inbox_events</code> table. If that insert is a duplicate, the message is acknowledged and skipped.
+              Together these give at-least-once delivery with effectively-once handling. v1 already had simpler
+              versions of both patterns. v2 hardens them and shares one tested library across every service.
+            </p>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>packages/contracts · event envelope</span><span>json</span></figcaption>
+<pre><code>{
+  <span class="tok-s">"eventId"</span>: <span class="tok-s">"0192c7f0-6a1e-7c3e-9a51-2f0d4e1b8a77"</span>,
+  <span class="tok-s">"type"</span>: <span class="tok-s">"bid.placed"</span>,
+  <span class="tok-s">"version"</span>: <span class="tok-n">1</span>,
+  <span class="tok-s">"occurredAt"</span>: <span class="tok-s">"2026-10-21T09:12:31.204Z"</span>,
+  <span class="tok-s">"producer"</span>: <span class="tok-s">"bid-service"</span>,
+  <span class="tok-s">"correlationId"</span>: <span class="tok-s">"req_7f3c…"</span>,
+  <span class="tok-s">"traceparent"</span>: <span class="tok-s">"00-4bf92f…-00f067aa0ba902b7-01"</span>,
+  <span class="tok-s">"data"</span>: { <span class="tok-c">/* type-specific payload, validated with zod */</span> }
+}</code></pre>
+            </figure>
+
+            <p>
+              Ordering across messages is not guaranteed, so handlers tolerate reordering. The price projection only
+              ever moves upward, and a state event is applied only if its transition is valid from the current state.
+              The <code>traceparent</code> in the envelope carries the trace across the broker, so a single bid appears
+              in Jaeger as one trace from the gateway through the bid service, RabbitMQ and the notification service
+              and back to the browser push.
+            </p>
+
+            <h3>When something breaks</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">failure</th><th scope="col">what users see</th><th scope="col">recovery</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Notification service down</td><td>Bidding, browsing and the lifecycle carry on; notifications are delayed</td><td>Queue holds messages until it restarts</td></tr>
+                  <tr><td>RabbitMQ down</td><td>Bids are still accepted; live updates pause with a banner</td><td>The outbox relays the backlog when the broker returns</td></tr>
+                  <tr><td>Redis down</td><td>Rate limiting fails open (logged); scheduled jobs pause</td><td>The reconciler catches overdue transitions</td></tr>
+                  <tr><td>Auction service down</td><td>Auction pages and bids return 503 within a second; other pages work</td><td>Circuit breaker half-opens after 15–30 s</td></tr>
+                  <tr><td>User service down</td><td>New logins fail; existing sessions work for up to 15 minutes</td><td>Cached signing keys keep tokens verifiable</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Data model</h3>
+            <p>
+              One PostgreSQL server hosts five databases, and each service connects with a role that can reach only its
+              own. There are no cross-database foreign keys: services reference each other by id and keep their copies
+              in sync through events. Money is stored as <code>numeric(12,2)</code> and sent as a string
+              (<code>"125.00"</code>), times are UTC <code>timestamptz</code>, and ids are time-ordered UUID v7. Schemas
+              change through reviewed Prisma migrations instead of v1's <code>ddl-auto: update</code>.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/erd.png" target="_blank" rel="noopener">
+                <img src="images/erd.png" alt="Entity-relationship diagram grouped by database: user_db, auction_db, bid_db, notification_db and wallet_db, linked across databases only by logical ids." width="2160" height="2963" loading="lazy">
+              </a>
+              <figcaption>The data model, one database per service. The auction service keeps a denormalised price projection for fast list pages; the bid service stays the source of truth for bids.</figcaption>
+            </figure>
+          </section>
+
+          <!-- ============ SECTION: SECURITY ============ -->
+          <section class="cs-sec" id="security">
+            <h2>Security</h2>
+            <p>
+              Most of v1's high-severity findings were security problems, and most of them came down to trusting the
+              wrong thing: the UI, the request body, or a secret that every service shared. v2 takes identity only from
+              verified tokens and denies anything that is not explicitly allowed.
+            </p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">v1 finding</th><th scope="col">v2 fix</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Any user could create auctions: the route rule did not match the endpoint</td><td>One declarative route table generates the proxy, the role checks and the rate limits, so they cannot drift apart. Services check roles too.</td></tr>
+                  <tr><td>Seller id taken from the request body</td><td>Identity comes only from the token's <code>sub</code>; request schemas reject unknown fields</td></tr>
+                  <tr><td>One HS512 secret copied to all five services</td><td>RS256: only the user service holds the private key, and the others verify through a JWKS endpoint</td></tr>
+                  <tr><td>Access and refresh tokens in the OAuth redirect URL</td><td>The callback sets an HttpOnly refresh cookie only; no token ever appears in a URL</td></tr>
+                  <tr><td>Stored XSS through <code>innerHTML</code></td><td>React escaping, <code>dangerouslySetInnerHTML</code> banned by lint, and a strict CSP</td></tr>
+                  <tr><td>Login revealed whether an e-mail was registered; suspended users could still log in</td><td>One generic error, a dummy hash for unknown e-mails, and account status enforced on login, refresh and bidding</td></tr>
+                  <tr><td>Users logged out silently after 15 minutes</td><td>Access token in memory, rotating refresh cookie, and a single-flight silent refresh</td></tr>
+                  <tr><td>Hardcoded admin credentials in the source</td><td>Admin seeded from environment variables; gitleaks in CI</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Sessions</h3>
+            <p>
+              Passwords are hashed with argon2id. Access tokens last 15 minutes and are kept in memory only. The refresh
+              token is a random 256-bit value stored as a SHA-256 hash, sent in an HttpOnly, SameSite=Strict cookie scoped
+              to the auth routes, and rotated on every use. If an already-rotated token is ever presented again, the
+              whole session family is revoked, which is the standard defence against a stolen refresh token.
+            </p>
+
+            <div class="gallery">
+              <figure class="figure">
+                <a class="figure__media" href="images/seq-login.png" target="_blank" rel="noopener">
+                  <img src="images/seq-login.png" alt="Sequence diagram of password login and refresh rotation between the SPA, gateway, user service and database, including reuse detection and logout." width="2160" height="1692" loading="lazy">
+                </a>
+                <figcaption>Password login and refresh rotation with reuse detection.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/seq-google.png" target="_blank" rel="noopener">
+                  <img src="images/seq-google.png" alt="Sequence diagram of Google single sign-on using the authorization-code flow with PKCE, ending with an HttpOnly refresh cookie rather than tokens in the URL." width="2160" height="1004" loading="lazy">
+                </a>
+                <figcaption>Google sign-on: authorization code with PKCE, and no tokens in any URL.</figcaption>
+              </figure>
+            </div>
+
+            <h3>Authorisation in four layers</h3>
+            <ol>
+              <li><strong>Gateway:</strong> the route table declares authentication and roles for every path. Unknown paths and anything under <code>/internal</code> return 404.</li>
+              <li><strong>Service:</strong> every controller verifies the JWT and its roles itself, so services never rely on gateway headers alone.</li>
+              <li><strong>Domain:</strong> ownership checks ("is this your auction?") live inside the application services.</li>
+              <li><strong>Tests:</strong> a generated test calls every endpoint as anonymous, USER, TRUSTED_USER, ADMIN and owner, and asserts the expected status.</li>
+            </ol>
+            <p>
+              Role and status changes take effect within seconds rather than at the next login. When the user service
+              publishes a role change, the gateway marks that user's older tokens as stale, and the SPA silently fetches a
+              new one. When a user is suspended, the gateway blocks them and closes their open WebSockets.
+            </p>
+          </section>
+
+          <!-- ============ SECTION: DEPLOYMENT ============ -->
+          <section class="cs-sec" id="deployment">
+            <h2>Running it for free</h2>
+            <p>
+              Docker Compose is the primary runtime, and the same images run in Compose, Kubernetes and AWS. A fresh
+              clone starts with one command and no configuration. A one-shot container generates the JWT signing keys,
+              others run migrations and seed demo users and auctions, and healthchecks order the start-up.
+            </p>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>deploy/scripts/demo.sh</span><span>bash</span></figcaption>
+<pre><code>./deploy/scripts/demo.sh up          <span class="tok-c"># app :8080 · mail :8025 · RabbitMQ :15672</span>
+./deploy/scripts/demo.sh up --obs    <span class="tok-c"># + Grafana, Prometheus, Jaeger</span>
+./deploy/scripts/demo.sh up --wallet <span class="tok-c"># + wallet service and settlement (stretch)</span>
+./deploy/scripts/demo.sh reset       <span class="tok-c"># wipe volumes and reseed</span>
+./deploy/scripts/demo.sh down</code></pre>
+            </figure>
+
+            <p>
+              Every container has a memory limit, and every Node service caps its heap so V8 stays inside that limit.
+            </p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">container</th><th scope="col">limit</th><th scope="col">typical</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>gateway</td><td>192 MB</td><td>110 MB</td></tr>
+                  <tr><td>user / auction / bid / notification (each)</td><td>160 MB</td><td>85–120 MB</td></tr>
+                  <tr><td>PostgreSQL</td><td>192 MB</td><td>90 MB</td></tr>
+                  <tr><td>RabbitMQ</td><td>256 MB</td><td>130 MB</td></tr>
+                  <tr><td>Redis, Nginx, Mailpit</td><td>128 MB</td><td>33 MB</td></tr>
+                  <tr><td><strong>core total</strong></td><td><strong>≈ 1.5 GB</strong></td><td><strong>≈ 1.0–1.1 GB</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="gallery">
+              <figure class="figure">
+                <a class="figure__media" href="images/deploy-compose.png" target="_blank" rel="noopener">
+                  <img src="images/deploy-compose.png" alt="Local Docker Compose deployment: Nginx serving the SPA and proxying to the gateway, the application services, one-shot keys, migrate and seed jobs, PostgreSQL, RabbitMQ, Redis, Mailpit and an optional observability profile." width="2160" height="2163" loading="lazy">
+                </a>
+                <figcaption>Local Compose, the default: only the web app and developer tools publish ports, and the tool ports are bound to localhost.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/deploy-k3d.png" target="_blank" rel="noopener">
+                  <img src="images/deploy-k3d.png" alt="Local Kubernetes deployment on k3d: Traefik ingress, Deployments with horizontal pod autoscalers for the gateway and bid service, StatefulSets for PostgreSQL and RabbitMQ, migrate and seed Jobs, and a default-deny NetworkPolicy." width="2160" height="1709" loading="lazy">
+                </a>
+                <figcaption>Optional Kubernetes on k3d: rolling updates, self-healing, and autoscaling of the gateway and bid service under k6 load.</figcaption>
+              </figure>
+            </div>
+
+            <h3>AWS on the free tier</h3>
+            <p>
+              The public demo is a CloudFront distribution in front of a private S3 bucket for the SPA and a single
+              t4g.small EC2 instance running the same Compose stack. The instance accepts traffic only from CloudFront's
+              origin-facing IP ranges, has no SSH port (operators use SSM Session Manager), and reads its secrets from
+              SSM Parameter Store at deploy time. Terraform creates everything with <code>pnpm aws:up</code> and removes
+              it with <code>pnpm aws:down</code>, and a US$1 budget alarm watches the bill.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/deploy-aws.png" target="_blank" rel="noopener">
+                <img src="images/deploy-aws.png" alt="AWS deployment: visitors reach a CloudFront distribution, which serves the SPA from a private S3 bucket and forwards API and WebSocket traffic to a single EC2 t4g.small running Docker Compose in the default VPC; IAM, SSM Parameter Store, SSM Run Command, Budgets and CloudWatch sit alongside, with optional RDS and SES." width="2160" height="2168" loading="lazy">
+              </a>
+              <figcaption>The AWS deployment. No NAT gateway, no load balancer and no hourly-billed managed services.</figcaption>
+            </figure>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt><dd>The AWS demo must cost nothing. An EKS control plane alone is about US$73 a month, Fargate is not in the free tier, and managed brokers and caches are billed by the hour.</dd>
+                <dt>decision</dt><dd>One EC2 t4g.small running Docker Compose, behind CloudFront and S3, defined in Terraform and deployed over SSM. Kubernetes is shown locally on k3d instead.</dd>
+                <dt>trade-off</dt><dd>The same artefacts as local, a fit inside 2 GiB, and HTTPS without buying a domain. There is no high availability, and the CloudFront-to-instance hop is plain HTTP; both are documented demo limits.</dd>
+              </dl>
+            </aside>
+
+            <aside class="callout">
+              <p class="callout__label">heads up</p>
+              <p>
+                The EC2 T4g free trial that covers the t4g.small ends on 31 December 2026. After that, the instance costs
+                roughly US$12 a month if left running, so the runbook pairs the budget alarm with an optional auto-stop
+                timer and one-command teardown.
+              </p>
+            </aside>
+
+            <h3>CI/CD</h3>
+            <p>
+              Pull requests run lint, type checks, unit and integration tests, contract checks and security scans,
+              building only the packages a change affects. A merge to <code>main</code> builds multi-architecture
+              images (amd64 and arm64 for Graviton), scans them with Trivy, attaches an SBOM, pushes them to GHCR tagged
+              by git SHA, and runs the full demo storyline in Playwright against the new images. Deploying to AWS is a
+              manual workflow that authenticates through GitHub OIDC, so no cloud keys are stored anywhere, and it rolls
+              back automatically if the smoke test fails. A nightly job adds load tests and chaos scripts.
+            </p>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/cicd.png" target="_blank" rel="noopener">
+                <img src="images/cicd.png" alt="CI/CD pipeline: pull-request checks, a release workflow that builds, scans and pushes multi-arch images then runs end-to-end tests, a manually approved AWS deploy with OIDC and rollback, a teardown workflow, and nightly load and chaos runs." width="2160" height="1337" loading="lazy">
+              </a>
+              <figcaption>The delivery pipeline, from pull request to a CloudFront URL and back down again.</figcaption>
+            </figure>
+          </section>
+
+          <!-- ============ SECTION: RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>
+              The result is a complete design that the build can follow without re-deciding the architecture. It
+              consists of a 26-section architecture document, 20 diagrams drawn in plain HTML and CSS (rendered to the
+              PNGs on this page), 16 architecture decision records, and a backlog that breaks the work into tasks with
+              acceptance criteria, priorities and dependencies.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">59</span><span class="metrics__label">functional requirements, each traced to a service and an epic</span></li>
+              <li><span class="metrics__val">16</span><span class="metrics__label">architecture decision records</span></li>
+              <li><span class="metrics__val">167</span><span class="metrics__label">backlog tasks across 17 epics and 6 milestones</span></li>
+            </ul>
+
+            <p>
+              Every requirement is either carried over from v1, taken from a v1 design that was never built, or new,
+              and every requirement is prioritised. The 110 "Must" tasks (about 131 person-days) make up a demo-ready
+              milestone. Stretch work such as the wallet and Kubernetes only starts once that milestone is reached.
+            </p>
+
+            <h3>Targets the build is held to</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">quality</th><th scope="col">target</th><th scope="col">verified by</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Deployability</td><td>Fresh clone to working demo with one command in ≤ 10 min, no manual config</td><td>Timed E2E run in the release workflow</td></tr>
+                  <tr><td>Correctness under concurrency</td><td>200 concurrent bids on one auction: 0 accepted bids breaking the increment rule</td><td>k6 plus a SQL assertion, nightly</td></tr>
+                  <tr><td>Performance</td><td>Placing a bid p95 ≤ 300 ms at 50 concurrent users</td><td>k6 bid-storm scenario</td></tr>
+                  <tr><td>Real-time latency</td><td>Other viewers see a new price within 1 s (p95)</td><td>Playwright timing and a push-lag histogram</td></tr>
+                  <tr><td>Resilience</td><td>Broker outage loses no events; notification outage leaves bidding unaffected</td><td>Chaos scripts, nightly</td></tr>
+                  <tr><td>Security</td><td>0 secrets in the repo, 0 critical image vulnerabilities, every endpoint covered by an authorisation test</td><td>gitleaks, Trivy and the matrix test in CI</td></tr>
+                  <tr><td>Cost</td><td>US$0 locally; AWS inside free-tier allowances with a US$1 alarm</td><td>AWS Budgets and the teardown workflow</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              The acceptance test is a ten-step demo storyline that doubles as the Playwright end-to-end suite. Two
+              bidders outbid each other with prices updating live in both browsers. A seller's auction starts by itself.
+              An admin halts and resumes it, then ends it early, and the winner, losers and seller each receive the right
+              notification. The notification service is then stopped mid-demo, bidding carries on, and the missed
+              notifications arrive when it comes back. The last step shows that bid's trace in Jaeger, crossing every
+              service involved.
+            </p>
+          </section>
+
+          <!-- ============ SECTION: LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li><strong>Authorisation in the UI is not authorisation.</strong> Hiding v1's "create" button did nothing, because the gateway rule and the real endpoint had drifted apart. Generating every rule from one table, and testing every endpoint against every role, removes that drift instead of hoping to catch it.</li>
+              <li><strong>A check followed by a write is a race unless something serialises it.</strong> The fix did not need new infrastructure. One advisory lock in the right transaction was enough at this scale, and it was the smallest change that was provably correct.</li>
+              <li><strong>Time is a feature.</strong> Anything that must happen "at the end time" needs a scheduler, a reconciler for when the scheduler misses, and a single authoritative clock.</li>
+              <li><strong>Cost constraints shape an architecture as much as patterns do.</strong> The move to Node was decided as much by memory per service as by language, and it is what makes the free-tier deployment possible at all.</li>
+              <li><strong>Design diagrams that never get built are debt.</strong> v1's state diagrams were a good specification that nobody implemented. Treating them as requirements gave v2 most of its domain logic.</li>
+              <li><strong>Next time, I would build the walking skeleton before the features.</strong> Distributed bugs are hard to find without tracing, so the v2 plan puts tracing, CI and one event flowing end to end into the very first milestone.</li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
