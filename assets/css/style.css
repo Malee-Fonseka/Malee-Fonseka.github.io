@@ -1064,6 +1064,8 @@ a.figure__media:focus-visible::after { opacity: 1; }
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
   gap: 16px;
 }
+/* Wide images (over 2:1, such as before-and-after strips) go two to a row, so they stay legible */
+.gallery--wide { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
 
 /* HTML-only flow diagram: <ol class="flow"> with <li class="flow__node"> steps */
 .flow {
@@ -1145,6 +1147,8 @@ a.figure__media:focus-visible::after { opacity: 1; }
   white-space: nowrap;
 }
 .table-wrap td:first-child { white-space: nowrap; color: var(--text); }
+/* A first column of sentences rather than short labels wraps like the rest */
+.table-wrap--text td:first-child { white-space: normal; }
 .table-wrap tbody tr:last-child td { border-bottom: 0; }
 .table-wrap tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
 

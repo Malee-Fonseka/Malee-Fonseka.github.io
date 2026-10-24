@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Attention U-Net: a four-level encoder and decoder joined by attention-gated skip connections, with a main output and an auxiliary output</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#3d9f96"/>
+    </marker>
+  </defs>
+  <rect width="960" height="600" fill="#0d1011"/>
+  <text x="24" y="34" font-size="12" fill="#788187" letter-spacing="2">ATTENTION U-NET · 7.97M PARAMETERS · INPUT 256² × 1 (v1) OR × 3 (v3)</text>
+
+  <text x="130" y="74" text-anchor="middle" font-size="11" fill="#788187" letter-spacing="2">ENCODER</text>
+  <text x="660" y="74" text-anchor="middle" font-size="11" fill="#788187" letter-spacing="2">DECODER</text>
+
+  <!-- encoder -->
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="40" y="88" width="180" height="56"/>
+    <rect x="40" y="178" width="180" height="56"/>
+    <rect x="40" y="268" width="180" height="56"/>
+    <rect x="40" y="358" width="180" height="56"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="130" y="112" font-size="14" font-weight="600" fill="#e7ebed">256² × 32</text>
+    <text x="130" y="132" font-size="11" fill="#788187">conv×2 · SE · drop 0.05</text>
+    <text x="130" y="202" font-size="14" font-weight="600" fill="#e7ebed">128² × 64</text>
+    <text x="130" y="222" font-size="11" fill="#788187">conv×2 · SE · drop 0.10</text>
+    <text x="130" y="292" font-size="14" font-weight="600" fill="#e7ebed">64² × 128</text>
+    <text x="130" y="312" font-size="11" fill="#788187">conv×2 · SE · drop 0.15</text>
+    <text x="130" y="382" font-size="14" font-weight="600" fill="#e7ebed">32² × 256</text>
+    <text x="130" y="402" font-size="11" fill="#788187">conv×2 · SE · drop 0.20</text>
+  </g>
+  <g stroke="#b3bbc1" stroke-opacity=".75">
+    <line x1="130" y1="144" x2="130" y2="176" marker-end="url(#arrow)"/>
+    <line x1="130" y1="234" x2="130" y2="266" marker-end="url(#arrow)"/>
+    <line x1="130" y1="324" x2="130" y2="356" marker-end="url(#arrow)"/>
+  </g>
+  <text x="140" y="165" font-size="10" fill="#788187">max-pool</text>
+
+  <!-- bottleneck -->
+  <rect x="300" y="448" width="190" height="56" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="395" y="472" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">16² × 512</text>
+  <text x="395" y="492" text-anchor="middle" font-size="11" fill="#788187">conv×2 · SE · drop 0.30</text>
+  <text x="395" y="524" text-anchor="middle" font-size="10" fill="#788187" letter-spacing="2">BOTTLENECK</text>
+  <g fill="none" stroke="#b3bbc1" stroke-opacity=".75">
+    <path d="M130 414V476H298" marker-end="url(#arrow)"/>
+    <path d="M490 476H660V416" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- decoder -->
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="570" y="88" width="180" height="56"/>
+    <rect x="570" y="178" width="180" height="56"/>
+    <rect x="570" y="268" width="180" height="56"/>
+    <rect x="570" y="358" width="180" height="56"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="660" y="112" font-size="14" font-weight="600" fill="#e7ebed">256² × 32</text>
+    <text x="660" y="132" font-size="11" fill="#788187">up · concat · conv×2 · SE</text>
+    <text x="660" y="202" font-size="14" font-weight="600" fill="#e7ebed">128² × 64</text>
+    <text x="660" y="222" font-size="11" fill="#788187">up · concat · conv×2 · SE</text>
+    <text x="660" y="292" font-size="14" font-weight="600" fill="#e7ebed">64² × 128</text>
+    <text x="660" y="312" font-size="11" fill="#788187">up · concat · conv×2 · SE</text>
+    <text x="660" y="382" font-size="14" font-weight="600" fill="#e7ebed">32² × 256</text>
+    <text x="660" y="402" font-size="11" fill="#788187">up · concat · conv×2 · SE</text>
+  </g>
+  <g stroke="#b3bbc1" stroke-opacity=".75">
+    <line x1="660" y1="358" x2="660" y2="326" marker-end="url(#arrow)"/>
+    <line x1="660" y1="268" x2="660" y2="236" marker-end="url(#arrow)"/>
+    <line x1="660" y1="178" x2="660" y2="146" marker-end="url(#arrow)"/>
+  </g>
+  <text x="670" y="165" font-size="10" fill="#788187">transpose conv</text>
+
+  <!-- attention-gated skip connections -->
+  <g stroke="#3d9f96" stroke-opacity=".8">
+    <line x1="220" y1="116" x2="381" y2="116"/><line x1="409" y1="116" x2="568" y2="116" marker-end="url(#arrow-teal)"/>
+    <line x1="220" y1="206" x2="381" y2="206"/><line x1="409" y1="206" x2="568" y2="206" marker-end="url(#arrow-teal)"/>
+    <line x1="220" y1="296" x2="381" y2="296"/><line x1="409" y1="296" x2="568" y2="296" marker-end="url(#arrow-teal)"/>
+    <line x1="220" y1="386" x2="381" y2="386"/><line x1="409" y1="386" x2="568" y2="386" marker-end="url(#arrow-teal)"/>
+  </g>
+  <g fill="#0f2523" stroke="#3d9f96">
+    <circle cx="395" cy="116" r="14"/>
+    <circle cx="395" cy="206" r="14"/>
+    <circle cx="395" cy="296" r="14"/>
+    <circle cx="395" cy="386" r="14"/>
+  </g>
+  <g text-anchor="middle" font-size="10" font-weight="600" fill="#e7ebed">
+    <text x="395" y="120">AG</text>
+    <text x="395" y="210">AG</text>
+    <text x="395" y="300">AG</text>
+    <text x="395" y="390">AG</text>
+  </g>
+  <text x="395" y="92" text-anchor="middle" font-size="10" fill="#3d9f96">skip connection</text>
+
+  <!-- outputs -->
+  <rect x="790" y="88" width="150" height="56" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="865" y="112" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">main output</text>
+  <text x="865" y="132" text-anchor="middle" font-size="11" fill="#788187">256² × 6 · softmax</text>
+  <line x1="750" y1="116" x2="788" y2="116" stroke="#b3bbc1" stroke-opacity=".75" marker-end="url(#arrow)"/>
+
+  <rect x="790" y="268" width="150" height="56" fill="#0d1011" stroke="#3d9f96" stroke-dasharray="5 4"/>
+  <text x="865" y="292" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">aux output</text>
+  <text x="865" y="312" text-anchor="middle" font-size="11" fill="#788187">↑×4 · loss weight 0.4</text>
+  <line x1="750" y1="296" x2="788" y2="296" stroke="#b3bbc1" stroke-opacity=".6" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <text x="865" y="342" text-anchor="middle" font-size="10" fill="#788187">deep supervision · v3 only</text>
+
+  <!-- legend -->
+  <g font-size="11" fill="#788187">
+    <text x="40" y="560"><tspan fill="#e7ebed" font-weight="600">SE</tspan>  squeeze-and-excitation: re-weights channels from a whole-image summary</text>
+    <text x="40" y="582"><tspan fill="#e7ebed" font-weight="600">AG</tspan>  attention gate: decoder features decide which encoder features pass</text>
+  </g>
+</svg>

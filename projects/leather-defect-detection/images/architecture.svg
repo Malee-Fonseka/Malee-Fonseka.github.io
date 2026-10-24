@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 404" width="960" height="404" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>System architecture: training notebooks produce a Keras model file, which the desktop app loads</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#3d9f96"/>
+    </marker>
+  </defs>
+  <rect width="960" height="404" fill="#0d1011"/>
+
+  <!-- ===== offline lane ===== -->
+  <text x="24" y="34" font-size="12" fill="#788187" letter-spacing="2">OFFLINE · TRAINING NOTEBOOKS (COLAB)</text>
+
+  <rect x="24" y="56" width="192" height="72" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="120" y="88" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">MVTec AD leather</text>
+  <text x="120" y="110" text-anchor="middle" font-size="11" fill="#788187">245 good · 92 defect</text>
+
+  <rect x="264" y="56" width="192" height="72" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="360" y="88" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">data pipeline</text>
+  <text x="360" y="110" text-anchor="middle" font-size="11" fill="#788187">256² · augment · low-light</text>
+
+  <rect x="504" y="56" width="192" height="72" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="600" y="88" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">Attention U-Net</text>
+  <text x="600" y="110" text-anchor="middle" font-size="11" fill="#788187">focal + Dice · 6 classes</text>
+
+  <rect x="744" y="56" width="192" height="72" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="840" y="88" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">v1 / v3 .keras</text>
+  <text x="840" y="110" text-anchor="middle" font-size="11" fill="#788187">the shared contract</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".75">
+    <line x1="216" y1="92" x2="262" y2="92" marker-end="url(#arrow)"/>
+    <line x1="456" y1="92" x2="502" y2="92" marker-end="url(#arrow)"/>
+    <line x1="696" y1="92" x2="742" y2="92" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- side experiments -->
+  <rect x="24" y="152" width="192" height="56" fill="#0d1011" stroke="#b3bbc1" stroke-opacity=".45" stroke-dasharray="5 4"/>
+  <text x="120" y="176" text-anchor="middle" font-size="14" font-weight="600" fill="#d5dadd">classical CV</text>
+  <text x="120" y="196" text-anchor="middle" font-size="11" fill="#788187">baseline to beat</text>
+
+  <rect x="264" y="152" width="192" height="56" fill="#0d1011" stroke="#b3bbc1" stroke-opacity=".45" stroke-dasharray="5 4"/>
+  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="600" fill="#d5dadd">DDPM</text>
+  <text x="360" y="196" text-anchor="middle" font-size="11" fill="#788187">synthetic images</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".5" stroke-dasharray="4 4">
+    <line x1="120" y1="128" x2="120" y2="150" marker-end="url(#arrow)"/>
+    <line x1="360" y1="128" x2="360" y2="150" marker-end="url(#arrow)"/>
+  </g>
+  <text x="476" y="185" font-size="11" fill="#788187">side experiments, not in the shipped model</text>
+
+  <line x1="24" y1="234" x2="936" y2="234" stroke="#b3bbc1" stroke-opacity=".2" stroke-dasharray="2 6"/>
+
+  <!-- ===== online lane ===== -->
+  <text x="24" y="290" font-size="12" fill="#788187" letter-spacing="2">ONLINE · DESKTOP APP</text>
+
+  <rect x="24" y="304" width="192" height="76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="120" y="338" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">source</text>
+  <text x="120" y="360" text-anchor="middle" font-size="11" fill="#788187">webcam · video · image</text>
+
+  <rect x="264" y="304" width="192" height="76" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="360" y="338" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">DetectionWorker</text>
+  <text x="360" y="360" text-anchor="middle" font-size="11" fill="#788187">QThread · detector.py</text>
+
+  <rect x="504" y="304" width="192" height="76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="600" y="338" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">MainWindow</text>
+  <text x="600" y="360" text-anchor="middle" font-size="11" fill="#788187">UI thread · draw + stats</text>
+
+  <rect x="744" y="304" width="192" height="76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="840" y="338" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">snapshot</text>
+  <text x="840" y="360" text-anchor="middle" font-size="11" fill="#788187">4 × PNG + stats.json</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".75">
+    <line x1="216" y1="342" x2="262" y2="342" marker-end="url(#arrow)"/>
+    <line x1="456" y1="342" x2="502" y2="342" marker-end="url(#arrow)"/>
+    <line x1="696" y1="342" x2="742" y2="342" marker-end="url(#arrow)"/>
+  </g>
+  <text x="479" y="332" text-anchor="middle" font-size="10" fill="#788187">signal</text>
+  <text x="719" y="332" text-anchor="middle" font-size="10" fill="#788187">click</text>
+
+  <!-- model file feeds the worker -->
+  <path d="M840 128V264H360V302" fill="none" stroke="#3d9f96" stroke-opacity=".9" marker-end="url(#arrow-teal)"/>
+  <text x="600" y="256" text-anchor="middle" font-size="11" fill="#3d9f96">loaded once at start-up</text>
+</svg>
