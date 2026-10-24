@@ -45,7 +45,7 @@
         </p>
         <!-- EDIT: update the count when you add a project -->
         <p class="page-head__stats rise" style="--i:2">
-          <span>entries <b>07</b></span>
+          <span>entries <b>08</b></span>
           <span>updated <b>2026-10</b></span>
         </p>
       </header>
@@ -57,6 +57,8 @@
           2. Copy the card below (everything from <article class="card"> to </article>),
              paste it at the TOP of the list so the newest project comes first, and edit it.
           Cards are numbered P-01, P-02 … automatically in the order they appear.
+          Real cards use class="card rise" with style="--i:4", "--i:5" and "--i:6" for the first
+          three, so the first row fades in one by one; every later card uses --i:6.
 
           CARD TEMPLATE
           <article class="card" data-area="software-systems">
@@ -97,7 +99,22 @@
 
         <div class="cards">
 
-          <article class="card rise" style="--i:4" data-area="ai">
+          <article class="card rise" style="--i:4" data-area="research">
+            <div class="card__body">
+              <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
+              <h2 class="card__title"><a class="card__link" href="projects/bsgft/index.html">BSGFT — Securing Vehicular Network Topology Against Rational Attackers</a></h2>
+              <p class="card__desc">
+                A zero-trust defence against link discovery attacks in vehicular edge networks, combining a
+                Bayesian Stackelberg game, a federated GAN, four smart contracts and post-quantum signatures.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">NS-3</li><li class="key">Hyperledger Fabric</li><li class="key">PyTorch</li><li>SUMO</li><li>Go</li><li>Game theory</li>
+              </ul>
+              <p class="card__foot"><span class="area">research</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:5" data-area="ai">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/truthbomb/index.html">TruthBomb</a></h2>
@@ -112,7 +129,7 @@
             </div>
           </article>
 
-          <article class="card rise" style="--i:5" data-area="software-systems">
+          <article class="card rise" style="--i:6" data-area="software-systems">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--wip">in progress</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/clouds-auction-platform/index.html">Cloud Auction Platform</a></h2>
@@ -142,7 +159,7 @@
             </div>
           </article>
 
-          <article class="card rise" style="--i:7" data-area="software-systems">
+          <article class="card rise" style="--i:6" data-area="software-systems">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--wip">in progress</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/n-body-simulator/index.html">Parallel N-Body Simulator</a></h2>
@@ -157,7 +174,7 @@
             </div>
           </article>
 
-          <article class="card rise" style="--i:8" data-area="ai">
+          <article class="card rise" style="--i:6" data-area="ai">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/leather-defect-detection/index.html">Leather Defect Detection</a></h2>
@@ -172,7 +189,7 @@
             </div>
           </article>
 
-          <article class="card rise" style="--i:9" data-area="data-engineering">
+          <article class="card rise" style="--i:6" data-area="data-engineering">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/voltstream/index.html">Voltstream</a></h2>
@@ -189,7 +206,7 @@
             </div>
           </article>
 
-          <article class="card rise" style="--i:10" data-area="software-systems">
+          <article class="card rise" style="--i:6" data-area="software-systems">
             <div class="card__body">
               <p class="card__meta"><span>2026</span><span class="status status--wip">in progress</span></p>
               <h2 class="card__title"><a class="card__link" href="projects/screen-shield/index.html">Screen-Shield</a></h2>
