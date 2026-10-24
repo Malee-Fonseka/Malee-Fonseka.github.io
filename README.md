@@ -66,7 +66,7 @@ Claude follows the markup in `projects/_template/index.html`, so generated pages
 - **Header and footer:** the same as in `projects.html`, so nav and contact links stay current.
 - **Contents:** one entry per `##` section, in order.
 - **Figures:** each image links to its full-size file, loads lazily, and gets a `width` and `height` read from the image file, so the page doesn't jump while it loads.
-- **Tables:** the first column normally stays on one line, which suits short labels. If any cell in it is over 40 characters, the table gets `table-wrap--text` so that column wraps too.
+- **Tables:** the first column normally stays on one line, which suits short labels. If any cell in it is over 40 characters, the table gets `table-wrap--text` so that column wraps too. A column aligned right in the Markdown (`---:`) gets `class="num"` on its cells, for figures that line up.
 - **Galleries:** if every image in a gallery is more than twice as wide as it is tall, the gallery gets `gallery--wide`, which fits two to a row instead of up to four.
 - **Code:** escaped, and coloured with the `tok-*` classes (keywords, strings, numbers, comments and function names).
 - **Links:** external links open in a new tab, like every other external link on the site.

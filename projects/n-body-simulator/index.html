@@ -1,0 +1,737 @@
+<!doctype html>
+<!-- Generated from _case-study.md. Edit the Markdown and regenerate; changes made here are overwritten. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parallel N-Body Simulator · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: A gravitational N-body simulator built four ways (serial, OpenMP, MPI and CUDA) and redesigned so that every speedup is measured fairly against one serial baseline.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Parallel N-Body Simulator · case study">
+  <meta property="og:description" content="A gravitational N-body simulator built four ways (serial, OpenMP, MPI and CUDA) and redesigned so that every speedup is measured fairly against one serial baseline.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">n-body-simulator</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · High-performance computing</p>
+        <h1 class="rise" style="--i:1">Parallel N-Body Simulator</h1>
+        <p class="cs-lede rise" style="--i:2">
+          A direct-summation gravity simulator implemented as four independent backends
+          (serial, OpenMP, MPI and single-GPU CUDA) that run identical physics, so their
+          speedups can be compared honestly. After the first version worked, I benchmarked
+          and audited it, found that one math call cost about as much as four CPU threads gained,
+          and redesigned it around a single simulation driver, one backend interface and
+          pluggable observers, with an OpenGL viewer that can never slow a benchmark down.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">C11</li><li class="key">OpenMP</li><li class="key">MPI</li><li class="key">CUDA</li>
+          <li>OpenGL</li><li>CMake</li><li>Docker</li><li>Python</li><li>Bash</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/Malee-Fonseka/n-body" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#audit">Auditing the first version</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#implementation">Implementation</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              Simulating gravity directly means computing the pull of every body on every
+              other body: N² interactions per step, so 16,384 particles is 268 million
+              interactions per step. That makes direct-summation N-body the classic
+              benchmark for parallel hardware, and a good way to answer a practical
+              question: <em>what does each parallel programming model actually buy you over one
+              well-written core?</em>
+            </p>
+            <p>
+              The project answers it with four implementations of the same simulation: a
+              serial baseline, OpenMP threads, MPI processes and a CUDA GPU kernel. The first
+              version ran and produced numbers. This case study is about what came next:
+              measuring and auditing that version, finding where its numbers and its
+              structure could not be trusted, and redesigning it so that a fair comparison is
+              guaranteed by the architecture instead of by discipline.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">4</span><span class="metrics__label">independent backends running identical physics</span></li>
+              <li><span class="metrics__val">3.2×</span><span class="metrics__label">serial speedup from changing one function call</span></li>
+              <li><span class="metrics__val">359 GFLOP/s</span><span class="metrics__label">OpenMP on an 8-core laptop CPU after that fix</span></li>
+              <li><span class="metrics__val">12</span><span class="metrics__label">defects catalogued in the audit, 3 reproduced</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>
+              Speedup numbers are easy to inflate by accident. A parallel version that uses
+              different physics, different precision or a different starting state is not
+              comparable to its baseline. Neither is a "baseline" that is really the parallel
+              code run with one thread, or a timer that also measures file I/O and
+              diagnostics. Informal comparisons often make at least one of these mistakes,
+              and then the headline speedup means very little.
+            </p>
+
+            <h3>Requirements</h3>
+            <p>The project therefore had requirements beyond "make it fast":</p>
+            <ul>
+              <li>
+                <strong>Identical physics everywhere.</strong> Velocity-Verlet integration, softened
+                gravity, and initial conditions from a portable random generator
+                (SplitMix64, not <code>rand()</code>), so every backend starts from the same bits on
+                every platform.
+              </li>
+              <li>
+                <strong>An honest baseline.</strong> Every speedup is relative to the best serial
+                implementation, never to a parallel backend run with one worker.
+              </li>
+              <li>
+                <strong>Clean timing.</strong> Warm-up steps are excluded, energy diagnostics run outside
+                the timed region, MPI time is the maximum over all ranks, and the GPU is
+                synchronised before the timer is read.
+              </li>
+              <li>
+                <strong>Checkable correctness.</strong> Each backend must be shown to compute the same
+                physics, not just to finish sooner.
+              </li>
+              <li>
+                <strong>Visualisation without interference.</strong> Watching a simulation must never
+                change its benchmark numbers.
+              </li>
+              <li>
+                <strong>Extensible.</strong> A new backend variant, MPI exchange strategy or output format
+                should be one new module, not edits across several programs.
+              </li>
+            </ul>
+
+            <h3>Constraints</h3>
+            <ul>
+              <li>
+                One development machine: a Windows 11 laptop with an AMD Ryzen 7 5800H
+                (8 cores, 16 threads) and an NVIDIA RTX 3050 Ti Laptop GPU with 4 GB.
+              </li>
+              <li>
+                Two toolchains that do not overlap. The CPU and MPI code is POSIX-only
+                (<code>clock_gettime</code>, GNU Make, bash, Open MPI), while the CUDA 13.4 toolkit and
+                the MSVC compiler it needs are installed natively on Windows.
+              </li>
+              <li>The simulation core has to compile with gcc, MSVC and nvcc alike.</li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">note</p>
+              <p>
+                Full direct summation (all N² pairs, no Newton's-third-law halving, no tree
+                codes) is deliberate. It keeps the four kernels structurally identical, so
+                the comparison measures the parallel model rather than the algorithm. Faster
+                algorithms are planned as separate, clearly labelled benchmark categories that
+                are never mixed into the baseline.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 03 AUDIT ============ -->
+          <section class="cs-sec" id="audit">
+            <h2>Auditing the first version</h2>
+            <p>
+              The first version had good bones: one data model, a Structure-of-Arrays layout
+              on every backend, double-precision energy accumulation, and a strict split
+              between one machine-readable CSV row on stdout and human-readable logs on
+              stderr. Before optimising anything, I built a reproducible Linux test image,
+              measured a baseline and reviewed the code end to end. Three findings changed the
+              plan.
+            </p>
+
+            <h3>A one-line bug worth four threads</h3>
+            <p>
+              The single-precision kernels computed <code>1 / sqrt(r2)</code>. In C, <code>sqrt</code> is the
+              double-precision function, so every interaction made a round trip through
+              double precision inside the hottest loop of the program. Switching to <code>sqrtf</code>
+              removed 13 precision conversions from that loop and let the compiler emit
+              vectorised reciprocal square roots.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Configuration</th><th scope="col" class="num">Before</th><th scope="col" class="num">With <code>sqrtf</code></th><th scope="col" class="num">Gain</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>serial, N = 4,096</td><td class="num">14.96 ms/step</td><td class="num">4.71 ms/step</td><td class="num"><strong>3.2×</strong></td></tr>
+                  <tr><td>serial, N = 16,384</td><td class="num">243.0 ms/step</td><td class="num">76.0 ms/step</td><td class="num"><strong>3.2×</strong></td></tr>
+                  <tr><td>OpenMP 16 threads, N = 16,384</td><td class="num">37.2 ms/step</td><td class="num">15.0 ms/step</td><td class="num">2.5×</td></tr>
+                  <tr><td>OpenMP 16 threads, N = 65,536</td><td class="num">549 ms/step</td><td class="num">217 ms/step</td><td class="num">2.5×</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              A 3.2× serial gain is about what four OpenMP threads were buying. Tuning
+              parallelism on top of the old kernel would have been optimising the wrong
+              thing.
+            </p>
+
+            <h3>The time loop existed three times</h3>
+            <p>
+              The only contract between the shared code and a backend was one function,
+              <code>compute_forces</code>, operating on arrays in host memory. That fits serial and
+              OpenMP, but not MPI (data split across processes) or CUDA (data on the GPU).
+              So each of those re-implemented the whole driver: the time loop, warm-up,
+              diagnostic scheduling, energy tracing and cleanup, partly as multi-statement
+              macros capturing around 20 local variables. Three copies of the loop meant
+              every feature was written three times, and the copies had already drifted
+              apart.
+            </p>
+            <p>
+              The worst drift was a deadlock. The MPI loop decided whether to run its final
+              energy diagnostic partly by checking whether an energy-trace file was open, and
+              only rank 0 opens that file. With certain flag combinations, rank 0 entered a
+              collective operation that the other ranks never joined, and the run hung
+              forever. The project's own trace script only avoided it because 200 steps
+              happen to divide evenly by 5.
+            </p>
+
+            <h3>Other findings</h3>
+            <ul>
+              <li>
+                <strong>The build lied silently.</strong> The Makefile had no header dependencies, and
+                precision was not part of the object file names. Asking for a double build
+                after a float build relinked float objects into a "double" binary that ran
+                and printed plausible numbers.
+              </li>
+              <li>
+                <strong>The GPU backend was really a CUDA + MPI hybrid</strong> that kept particle state
+                on the host and made about 13 blocking calls and PCIe copies per step.
+                Because it needed MPI, GNU Make and POSIX timers, it could not be built next
+                to the CUDA toolkit on Windows at all.
+              </li>
+              <li>
+                <strong>Physics constants were duplicated</strong> between the C headers and the CUDA
+                source, so the CPU and the GPU could silently disagree about gravity or
+                softening.
+              </li>
+              <li>
+                <strong>Verification was end-to-end only:</strong> one final energy number per backend.
+                A wrong force that still roughly conserves energy would pass.
+              </li>
+            </ul>
+          </section>
+
+          <!-- ============ 04 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              The redesign keeps everything the audit confirmed was right: the shared
+              physics, the SoA layout, the measurement hygiene, the MPI ring algorithm and
+              the tiled CUDA kernel. What changes is how the pieces fit together.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
+                <img src="images/architecture.svg" alt="Layered architecture diagram. Applications at the top (a benchmark harness, one executable per backend, and an OpenGL viewer) call a single Simulation driver with its observers. The driver talks to four backends (serial, OpenMP, MPI, CUDA) through one nb_backend interface. The backends sit on a C11 core with no MPI, CUDA or I/O, which sits on a small platform layer." width="960" height="640" loading="lazy">
+              </a>
+              <figcaption>Five layers, with dependencies pointing down only. Only the MPI backend sees MPI, only the CUDA backend sees CUDA, and only observers do I/O.</figcaption>
+            </figure>
+
+            <ul>
+              <li>
+                <strong>Platform.</strong> A monotonic timer and aligned allocation, each with a POSIX
+                and a Win32 version. This is the only place platform calls are allowed, which
+                is what lets the core compile with gcc, MSVC and nvcc.
+              </li>
+              <li>
+                <strong>Core.</strong> Plain C11: the particle arrays, physics parameters (G, softening ε,
+                timestep dt) as runtime values instead of compile-time constants, initial
+                conditions, the leapfrog integrator and a reference energy calculation.
+              </li>
+              <li>
+                <strong>Backends.</strong> Four implementations of one interface, <code>nb_backend</code>. Each owns
+                its data in the layout its paradigm needs: host arrays for serial and OpenMP,
+                one block per rank for MPI, device memory for CUDA.
+              </li>
+              <li>
+                <strong>Simulation layer.</strong> One <code>Simulation</code> driver, the only time loop in the
+                system, owns the timer, the warm-up and the schedule. Observers handle
+                everything that is not stepping: diagnostics, energy traces, the benchmark
+                report, snapshot files and live frames for the viewer.
+              </li>
+              <li>
+                <strong>Applications.</strong> One command-line front-end, compiled once per backend
+                (<code>nbody_serial</code>, <code>nbody_openmp</code>, <code>nbody_mpi</code>, <code>nbody_cuda</code>), a separate
+                OpenGL viewer, and a Python benchmark harness that runs in both environments.
+              </li>
+            </ul>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>The original GPU backend was a CUDA + MPI hybrid, and hybrids blur the question the project asks: is a speedup coming from threads, from processes or from the GPU?</dd>
+                <dt>decision</dt>
+                <dd>Four independent backends (serial, OpenMP, MPI and single-GPU CUDA), each compared only against serial. Hybrids and multi-GPU are out of scope.</dd>
+                <dt>trade-off</dt>
+                <dd>There are no numbers for MPI + OpenMP or MPI + CUDA. In return each paradigm is measured in isolation, every build uses exactly one parallel toolchain (<code>mpicc</code> or <code>nvcc</code>, never both), and a hybrid can still be added later as a fifth backend.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ 05 IMPLEMENTATION ============ -->
+          <section class="cs-sec" id="implementation">
+            <h2>Implementation</h2>
+            <p>
+              The redesign is delivered in phases: stabilise and fix, then a portable build
+              and a test safety net, then the refactor onto the new interfaces, after which
+              CPU performance, GPU performance and visualisation can proceed in parallel.
+              These are the parts that answer the problems the audit found.
+            </p>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node flow__node--key"><strong>advance(k)</strong><span>the backend runs every step up to the next observer event</span></li>
+                  <li class="flow__node"><strong>pause timer</strong><span>only when an observer is due</span></li>
+                  <li class="flow__node"><strong>on_step</strong><span>every observer, called on every rank</span></li>
+                  <li class="flow__node"><strong>resume timer</strong><span>and continue stepping</span></li>
+                </ol>
+              </div>
+              <figcaption>One cycle of the new driver. With no observers attached, a benchmark run is a single <code>advance</code> call over the whole timed region.</figcaption>
+            </figure>
+
+            <h3>One interface, four data layouts</h3>
+            <p>
+              The backend contract is <code>advance(k)</code>: run k steps and return. The driver never
+              sees forces or the integrator, so the shape of the computation stays private to
+              each backend.
+            </p>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>include/nbody/backend.h</span><span>c · interface design</span></figcaption>
+<pre><code><span class="tok-k">struct</span> nb_backend {
+    <span class="tok-k">const</span> <span class="tok-k">char</span> *name;                    <span class="tok-c">/* "serial" | "openmp" | "mpi" | "cuda" */</span>
+    <span class="tok-k">int</span> rank, size;                      <span class="tok-c">/* 0 and 1 except for MPI               */</span>
+    <span class="tok-k">int</span>  (*<span class="tok-f">init</span>)(nb_backend *, <span class="tok-k">const</span> nb_params *, <span class="tok-k">const</span> nb_particles *initial);
+    <span class="tok-k">void</span> (*<span class="tok-f">advance</span>)(nb_backend *, <span class="tok-k">long</span> k_steps);            <span class="tok-c">/* timed work only   */</span>
+    <span class="tok-k">const</span> nb_particles *(*<span class="tok-f">host_view</span>)(nb_backend *);         <span class="tok-c">/* CUDA syncs lazily */</span>
+    <span class="tok-k">void</span> (*<span class="tok-f">energy</span>)(nb_backend *, nb_energy *out);           <span class="tok-c">/* collective        */</span>
+    <span class="tok-k">void</span> (*<span class="tok-f">gather_positions</span>)(nb_backend *, <span class="tok-k">float</span> *xyz_out); <span class="tok-c">/* collective        */</span>
+    <span class="tok-k">void</span> (*<span class="tok-f">destroy</span>)(nb_backend *);
+    <span class="tok-k">void</span> *impl;
+};</code></pre>
+            </figure>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Backend</th><th scope="col">Where state lives</th><th scope="col">Forces</th><th scope="col">Energy diagnostic</th><th scope="col">Built in</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>serial</td><td>host SoA arrays</td><td>full N² loop, the reference</td><td>host reference loop</td><td>Docker and Windows</td></tr>
+                  <tr><td>OpenMP</td><td>host SoA arrays</td><td>threaded, vectorised N² loop</td><td>parallel reduction</td><td>Docker</td></tr>
+                  <tr><td>MPI</td><td>one block per rank</td><td>ring exchange, communication overlapped with compute</td><td>the same ring</td><td>Docker</td></tr>
+                  <tr><td>CUDA</td><td>device memory</td><td>tiled shared-memory kernel</td><td>GPU kernel with double accumulation</td><td>Windows</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>The old one-function contract worked only for host-memory backends, which is why MPI and CUDA had to bring their own loops.</dd>
+                <dt>decision</dt>
+                <dd>Raise the contract to <code>advance(k)</code>, and have each backend compute its own energy where its data lives.</dd>
+                <dt>trade-off</dt>
+                <dd>A backend is bigger than a bare force kernel, so serial and OpenMP share a small host helper for the integrator and reference energy. In exchange, the GPU can run many steps without returning to the host, the MPI ring stays an internal detail, and verification runs become fast on every backend.</dd>
+              </dl>
+            </aside>
+
+            <h3>Observers remove a whole class of bug</h3>
+            <p>
+              The driver decides once, identically on every rank, whether an observer is
+              due, then calls it on every rank. An observer that writes a file does its own
+              rank-0-only I/O internally. Since no rank can ever reach a different decision
+              from another, the deadlock described above becomes impossible by
+              construction rather than fixed in one place. Energy traces, snapshots and the
+              benchmark report are each written once instead of three times, and the timer
+              is paused in exactly one place.
+            </p>
+
+            <h3>MPI: the same ring, without the overhead</h3>
+            <p>
+              Each rank owns N/P particles. Blocks of positions and masses rotate around a
+              ring of ranks, and each rank computes forces from the block it holds while the
+              next one is in flight, so memory per rank stays O(N/P) and communication
+              overlaps compute. The algorithm stays; the overheads go:
+            </p>
+            <ul>
+              <li>
+                Block sizes are derived arithmetically, so the separate size message
+                disappears and the message count halves.
+              </li>
+              <li>
+                Two buffers are swapped by pointer instead of copied in and out on every
+                iteration.
+              </li>
+              <li>
+                Each message is one interleaved <code>[x y z m]</code> slab sent over persistent
+                requests (<code>MPI_Send_init</code>, <code>MPI_Startall</code>).
+              </li>
+              <li>
+                <code>MPI_Test</code> runs every few tiles inside the force loop, so large messages
+                actually progress during computation instead of waiting on the library's
+                progress engine.
+              </li>
+              <li>
+                One ring module serves forces, energy and position gathering, replacing three
+                copies of the same logic.
+              </li>
+            </ul>
+            <p>
+              An <code>MPI_Allgatherv</code> variant is kept as an alternative for small rank counts.
+              The crossover between the two is measured, not assumed.
+            </p>
+
+            <h3>CUDA: one GPU, state on the device</h3>
+            <p>
+              The standalone CUDA backend starts as a port of the existing tiled kernel
+              without MPI, then moves the whole simulation onto the GPU: the kick and drift
+              steps run as kernels, and the host sees data only when an observer asks for it.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Per step</th><th scope="col">Original (<code>cuda_mpi</code>, one GPU)</th><th scope="col">Device-resident backend</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Host to device copies</td><td>7 arrays (positions, then the same data again as sources)</td><td>none</td></tr>
+                  <tr><td>Device to host copies</td><td>3 acceleration arrays</td><td>none</td></tr>
+                  <tr><td>Integrator</td><td>on the host</td><td>kick and drift kernels</td></tr>
+                  <tr><td>Blocking API calls</td><td>about 13</td><td>none (one per observer event)</td></tr>
+                  <tr><td>Energy diagnostic</td><td>O(N²) on the host</td><td>GPU kernel, double accumulation</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Two Windows-specific issues shape the GPU work. GeForce cards on Windows run
+              under the WDDM driver model, which has higher kernel-launch overhead, handled
+              with CUDA Graphs. It also has a watchdog that resets the display driver if a
+              single kernel runs longer than about two seconds. At a million particles one
+              force evaluation is around 10¹² interactions, so the backend splits it into
+              chunked launches of well under 100 ms each, reusing the accumulation the kernel
+              already performed per MPI block. Raising the watchdog timeout in the registry is
+              explicitly not the fix.
+            </p>
+
+            <h3>Two environments, one repo folder</h3>
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/environments.svg" target="_blank" rel="noopener">
+                <img src="images/environments.svg" alt="Environment diagram. On one Windows 11 laptop, native Windows holds the CUDA, MSVC and CMake toolchain, the CUDA executable with a serial reference build, and the OpenGL viewer. Docker Desktop's WSL2 VM runs three containers: dev, test and viz. Both sides read and write the same repo folder, which holds results and snapshot files." width="960" height="440" loading="lazy">
+              </a>
+              <figcaption>Each toolchain runs where it is native. Results and snapshot files written on one side are directly readable on the other.</figcaption>
+            </figure>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>The CPU code is POSIX-only, but CUDA 13.4, MSVC and NVIDIA's OpenGL driver live natively on Windows, and only NVIDIA's own driver supports CUDA–OpenGL interop.</dd>
+                <dt>decision</dt>
+                <dd>Docker for serial, OpenMP and MPI; native Windows with CMake presets for CUDA and the main viewer, both working on the same repo folder.</dd>
+                <dt>trade-off</dt>
+                <dd>CPU and GPU numbers come from different environments. To compensate, every result records its environment, all speedups use the Docker serial run as the single baseline, and a natively built serial binary verifies CUDA on the same machine.</dd>
+              </dl>
+            </aside>
+
+            <p>The Docker side has three services built from one Dockerfile:</p>
+            <ul>
+              <li>
+                <strong><code>dev</code></strong>: gcc 13, OpenMP, Open MPI 4.1, gdb, valgrind and static analysers,
+                with the repo bind-mounted so edits on Windows are seen immediately.
+              </li>
+              <li>
+                <strong><code>test</code></strong>: copies the working tree into a scratch directory and runs the
+                full suite (float and double builds, cross-backend verification, energy
+                traces, a benchmark smoke sweep and plots). Every stage runs under a timeout,
+                so a hung MPI job fails the run instead of blocking it, or CI, forever.
+              </li>
+              <li>
+                <strong><code>viz</code></strong>: OpenGL windows on the Windows desktop through WSLg, rendered on
+                the RTX 3050 Ti by Mesa's d3d12 driver at OpenGL 4.6 core.
+              </li>
+            </ul>
+            <p>
+              Containers run as a non-root user because Open MPI refuses to run as root, and
+              get 1 GB of shared memory for Open MPI's transport instead of Docker's 64 MB
+              default.
+            </p>
+
+            <h3>Visualisation that cannot touch a benchmark</h3>
+            <p>
+              The viewer (C++17, GLFW, OpenGL 4.5 core, Dear ImGui) is a separate program.
+              Benchmark binaries never link graphics code, and benchmark mode refuses any
+              observer that needs particle state. Frames reach the viewer from three sources
+              that all produce the same frame structure, so the renderer never knows where a
+              frame came from:
+            </p>
+            <ul>
+              <li>
+                <strong>Replay</strong> of <code>.nbs</code> snapshot files: a 64-byte header, a block of masses,
+                then fixed-size float32 frames. Frame <em>i</em> sits at a computable offset, so
+                seeking is O(1) through a memory map, and a killed run still leaves a
+                readable file. MPI runs in Docker write these into the shared folder, where
+                the Windows viewer picks them up.
+              </li>
+              <li>
+                <strong>Live</strong>: the simulation runs on a worker thread and publishes into a
+                lock-free triple buffer where the newest frame wins. A slow renderer drops
+                frames but never stalls the simulation.
+              </li>
+              <li>
+                <strong>CUDA interop</strong>: positions are copied from simulation memory straight into
+                the OpenGL vertex buffer on the GPU, without passing through the host.
+              </li>
+            </ul>
+            <p>
+              Particles are drawn as Gaussian point sprites with additive blending into a
+              half-float target, then tonemapped and coloured by speed or by galaxy, so the
+              dense cores of clusters glow instead of saturating.
+            </p>
+
+            <h3>Testing at the level of forces</h3>
+            <p>
+              Comparing final energies is a weak test. Chaotic dynamics amplify rounding
+              differences over time, and a subtly wrong force can still conserve energy. The
+              new strategy compares what every backend should compute identically: the
+              accelerations at t = 0, before chaos has had any effect.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Level</th><th scope="col">Check</th><th scope="col">Tolerance</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Unit</td><td>two-body force against the analytic formula; forces sum to zero (Σ mᵢaᵢ = 0)</td><td>1e-6 / 1e-5 relative</td></tr>
+                  <tr><td>Physics</td><td>Kepler orbit; time reversibility (run forward, then backward)</td><td>problem-specific / ~1e-5</td></tr>
+                  <tr><td>Equivalence</td><td>OpenMP, MPI (1–5 ranks, uneven blocks) and CUDA accelerations against serial</td><td>1e-5 float, 1e-12 double</td></tr>
+                  <tr><td>Regression</td><td>golden energy trace, N = 1,024, 100 steps</td><td>1e-6 relative</td></tr>
+                  <tr><td>Robustness</td><td>ASan + UBSan, valgrind on 2-rank MPI, <code>compute-sanitizer</code> on CUDA</td><td>clean reports</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              CUDA runs in a different environment from the others, so it is checked against
+              a serial build on the same machine, and the two serial builds (gcc and MSVC)
+              are checked against each other once. Every comparison is anchored to the same
+              reference.
+            </p>
+          </section>
+
+          <!-- ============ 06 RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>
+              Measured in the Docker test image on the development laptop (Ryzen 7 5800H,
+              gcc 13, Open MPI 4.1): single precision, a Plummer-sphere star cluster,
+              N = 16,384, median of three runs, threads and ranks pinned to cores. These are
+              indicative numbers from a laptop inside a VM, not publication-grade ones.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/speedup.svg" target="_blank" rel="noopener">
+                <img src="images/speedup.svg" alt="Log-log line chart of speedup over serial against worker count. OpenMP reaches 1.96x at 2 threads, 3.51x at 4, 4.35x at 8 and 6.69x at 16 threads with SMT. MPI reaches 1.96x at 2 ranks, 2.86x at 4 and 4.03x at 8. Both fall increasingly below the ideal-linear line." width="960" height="440" loading="lazy">
+              </a>
+              <figcaption>Strong scaling of the original kernel against the serial baseline. The 16-thread OpenMP point uses SMT on 8 physical cores; MPI stops at 8 ranks, one per core.</figcaption>
+            </figure>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Configuration</th><th scope="col" class="num">ms/step</th><th scope="col" class="num">Speedup</th><th scope="col" class="num">GFLOP/s</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>serial</td><td class="num">243.0</td><td class="num">1.00×</td><td class="num">22</td></tr>
+                  <tr><td>OpenMP, 2 threads</td><td class="num">124.2</td><td class="num">1.96×</td><td class="num">43</td></tr>
+                  <tr><td>OpenMP, 4 threads</td><td class="num">69.3</td><td class="num">3.51×</td><td class="num">77</td></tr>
+                  <tr><td>OpenMP, 8 threads</td><td class="num">55.8</td><td class="num">4.35×</td><td class="num">96</td></tr>
+                  <tr><td>OpenMP, 16 threads (SMT)</td><td class="num">36.3</td><td class="num">6.69×</td><td class="num">148</td></tr>
+                  <tr><td>MPI, 2 ranks</td><td class="num">124.0</td><td class="num">1.96×</td><td class="num">43</td></tr>
+                  <tr><td>MPI, 4 ranks</td><td class="num">84.9</td><td class="num">2.86×</td><td class="num">63</td></tr>
+                  <tr><td>MPI, 8 ranks</td><td class="num">60.3</td><td class="num">4.03×</td><td class="num">89</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              GFLOP/s uses the standard convention of 20 floating-point operations per
+              interaction, so the numbers stay comparable across hardware.
+            </p>
+            <p>What the numbers say:</p>
+            <ul>
+              <li>
+                <strong>Fix the kernel before tuning parallelism.</strong> With <code>sqrtf</code>, the serial
+                kernel reaches about 71 GFLOP/s, roughly half of one Zen 3 core's nominal
+                single-precision peak, and 16 OpenMP threads reach 359 GFLOP/s.
+              </li>
+              <li>
+                <strong>An efficient kernel makes scaling look worse, and that is the honest
+                result.</strong> With the fixed kernel, 8 threads give about 4× instead of 4.4×.
+                The slow kernel was bound by double-precision latency, which hid the
+                laptop's drop from single-core boost clocks to all-core clocks. Credible
+                strong-scaling claims need fixed clocks or bare metal.
+              </li>
+              <li>
+                <strong>On one node, MPI trails OpenMP</strong> (2.86× against 3.51× at 4 workers). Part
+                of the gap is ring overhead that the redesign removes. Part is inherent:
+                ranks pass messages where threads share memory. That remaining gap is a
+                legitimate result of the comparison, not something to engineer away.
+              </li>
+              <li>
+                <strong>The physics held.</strong> OpenMP and MPI match the serial final energy to every
+                printed digit. The MPI deadlock and the float-in-double build have exact
+                reproduction commands, which become regression tests when they are fixed.
+              </li>
+            </ul>
+
+            <h3>Where it stands</h3>
+            <p>
+              Done: the Docker development, test and GPU-accelerated viewer environments;
+              the audit, with 12 defects and 9 structural problems catalogued; the measured
+              baseline above; and the target architecture with a nine-phase backlog. Every
+              backlog item carries acceptance criteria, and anything on a hot path needs a
+              before-and-after benchmark to count as done.
+            </p>
+            <p>
+              Next come the stabilising fixes (starting with <code>sqrtf</code>), a CMake build for
+              both environments, the standalone CUDA backend, and then the refactor onto the
+              new interface. The refactor's exit criteria are strict: every backend within
+              ±3 % of its baseline, and serial accelerations bit-identical to before. The
+              targets after that:
+            </p>
+            <ul>
+              <li>serial kernel at 100 GFLOP/s or more, about 70 % of single-core peak</li>
+              <li>
+                CUDA at least 5× faster than the first standalone port at N = 64k, and a
+                million-particle step that completes without a driver reset
+              </li>
+              <li>the viewer drawing a million particles at 60 fps or more</li>
+            </ul>
+          </section>
+
+          <!-- ============ 07 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li>
+                <strong>Measure before you parallelise.</strong> One wrong function call cost about as
+                much as four threads gained. Reading the generated code and timing the serial kernel
+                first is now the step I start with; the cheapest speedup is usually removing
+                a mistake.
+              </li>
+              <li>
+                <strong>Duplicated control flow is where distributed bugs hide.</strong> The MPI deadlock
+                was not a logic error in any single loop, but drift between three copies of
+                it. Making collective decisions in one place removes the whole class of bug,
+                not just one instance.
+              </li>
+              <li>
+                <strong>A slow kernel flatters scaling.</strong> Speedup alone can reward an inefficient
+                baseline. Reporting GFLOP/s against the hardware's peak next to every speedup
+                keeps the numbers honest.
+              </li>
+              <li>
+                <strong>Build systems fail silently.</strong> A "double" binary full of float objects ran
+                and printed believable numbers. Precision now belongs to the build directory,
+                and one setting has to reach every compiler, CUDA included.
+              </li>
+              <li>
+                <strong>Choose the environment per toolchain.</strong> Forcing CUDA into a container, or
+                porting the POSIX code to Windows, would each have cost more than running two
+                environments over one shared folder.
+              </li>
+              <li>
+                <strong>Next time: force-level tests from day one.</strong> The end-to-end energy check
+                passed the whole time and caught none of the defects above.
+              </li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

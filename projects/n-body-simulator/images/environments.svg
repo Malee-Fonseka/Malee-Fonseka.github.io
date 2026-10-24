@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" width="960" height="440" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Development environments on one Windows laptop</title>
+  <desc>One Windows 11 laptop runs two environments. Native Windows holds the CUDA 13.4, MSVC and CMake toolchain, the CUDA backend with a serial reference build, and the OpenGL viewer. Docker Desktop's WSL2 VM runs three containers: dev, test and viz. Both environments read and write the same repo folder, which holds results and snapshot files.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+  </defs>
+  <rect width="960" height="440" fill="#0d1011"/>
+
+  <text x="24" y="30" font-size="11" fill="#788187" letter-spacing="2">WINDOWS 11 LAPTOP · RYZEN 7 5800H · RTX 3050 TI</text>
+  <rect x="16" y="44" width="928" height="380" fill="none" stroke="#b3bbc1" stroke-opacity=".3"/>
+
+  <!-- ===== native Windows ===== -->
+  <rect x="40" y="64" width="400" height="236" fill="#0f1214" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <text x="56" y="88" font-size="11" fill="#3d9f96" letter-spacing="2">NATIVE WINDOWS</text>
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="60" y="104" width="360" height="52"/>
+    <rect x="60" y="168" width="360" height="52"/>
+    <rect x="60" y="232" width="360" height="52"/>
+  </g>
+  <g font-size="14" font-weight="600" fill="#e7ebed">
+    <text x="76" y="126">CUDA 13.4 · MSVC · CMake</text>
+    <text x="76" y="190">nbody_cuda.exe</text>
+    <text x="76" y="254">nbody-viz.exe</text>
+  </g>
+  <g font-size="12" fill="#9aa3a9">
+    <text x="76" y="145">windows-cuda / windows-viz presets</text>
+    <text x="76" y="209">+ nbody_serial.exe as on-machine reference</text>
+    <text x="76" y="273">NVIDIA OpenGL 4.6 + CUDA–GL interop</text>
+  </g>
+
+  <!-- ===== Docker / WSL2 ===== -->
+  <rect x="520" y="64" width="400" height="236" fill="#0f1214" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <text x="536" y="88" font-size="11" fill="#3d9f96" letter-spacing="2">DOCKER · WSL2 VM</text>
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="540" y="104" width="360" height="52"/>
+    <rect x="540" y="168" width="360" height="52"/>
+    <rect x="540" y="232" width="360" height="52"/>
+  </g>
+  <g font-size="14" font-weight="600" fill="#e7ebed">
+    <text x="556" y="126">dev</text>
+    <text x="556" y="190">test</text>
+    <text x="556" y="254">viz</text>
+  </g>
+  <g font-size="12" fill="#9aa3a9">
+    <text x="556" y="145">gcc 13 · OpenMP · Open MPI 4.1 · tools</text>
+    <text x="556" y="209">clean-room suite · per-stage timeouts</text>
+    <text x="556" y="273">Mesa d3d12 → OpenGL 4.6 via WSLg</text>
+  </g>
+
+  <!-- ===== shared repo folder ===== -->
+  <path d="M340 338v50a140 12 0 0 0 280 0v-50" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <ellipse cx="480" cy="338" rx="140" ry="12" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="480" y="370" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">shared repo folder</text>
+  <text x="480" y="388" text-anchor="middle" font-size="12" fill="#9aa3a9">results/ · .nbs snapshots</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none">
+    <path d="M240 300V362H338" marker-end="url(#arrow)"/>
+    <path d="M720 300V362H622" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="11" fill="#788187">
+    <text x="228" y="340" text-anchor="end">same folder, native paths</text>
+    <text x="732" y="340">bind mount /workspace</text>
+  </g>
+</svg>

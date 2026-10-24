@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Layered architecture of the n-body simulator</title>
+  <desc>Five layers from top to bottom: applications (benchmark harness, one executable per backend, OpenGL viewer), the simulation layer (one Simulation driver and its observers), four backends behind one nb_backend interface (serial, OpenMP, MPI, CUDA), a C11 core with no MPI, CUDA or I/O, and a platform layer. Dependencies point down only.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+  </defs>
+  <rect width="960" height="640" fill="#0d1011"/>
+
+  <!-- layer labels -->
+  <g font-size="11" fill="#788187" letter-spacing="2">
+    <text x="24" y="86">APPS</text>
+    <text x="24" y="202">SIMULATION</text>
+    <text x="24" y="342">BACKENDS</text>
+    <text x="24" y="488">CORE</text>
+    <text x="24" y="596">PLATFORM</text>
+  </g>
+
+  <!-- ===== applications ===== -->
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="150" y="48" width="170" height="68"/>
+    <rect x="350" y="48" width="290" height="68"/>
+    <rect x="660" y="48" width="270" height="68"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="235" y="76" font-size="15" font-weight="600" fill="#e7ebed">bench harness</text>
+    <text x="235" y="97" font-size="12" fill="#9aa3a9">Python · both envs</text>
+    <text x="495" y="76" font-size="15" font-weight="600" fill="#e7ebed">nbody_&lt;backend&gt;</text>
+    <text x="495" y="97" font-size="12" fill="#9aa3a9">serial · openmp · mpi · cuda</text>
+    <text x="795" y="76" font-size="15" font-weight="600" fill="#e7ebed">nbody-viz</text>
+    <text x="795" y="97" font-size="12" fill="#9aa3a9">C++17 · OpenGL · live or replay</text>
+  </g>
+
+  <!-- ===== simulation layer ===== -->
+  <rect x="150" y="164" width="170" height="68" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <rect x="350" y="164" width="580" height="68" fill="#0f2523" stroke="#3d9f96"/>
+  <g text-anchor="middle">
+    <text x="235" y="188" font-size="15" font-weight="600" fill="#e7ebed">Observers</text>
+    <text x="235" y="207" font-size="12" fill="#9aa3a9">diagnostics · trace</text>
+    <text x="235" y="223" font-size="12" fill="#9aa3a9">report · snapshots</text>
+    <text x="640" y="192" font-size="15" font-weight="600" fill="#e7ebed">Simulation</text>
+    <text x="640" y="214" font-size="12" fill="#9aa3a9">the only time loop · timer · warm-up · observer schedule</text>
+  </g>
+
+  <!-- ===== backends ===== -->
+  <rect x="150" y="280" width="780" height="116" fill="#0f1214" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <text x="166" y="302" font-size="12" fill="#3d9f96">nb_backend · init · advance(k) · energy · gather_positions · destroy</text>
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="162" y="314" width="180" height="70"/>
+    <rect x="354" y="314" width="180" height="70"/>
+    <rect x="546" y="314" width="180" height="70"/>
+    <rect x="738" y="314" width="180" height="70"/>
+  </g>
+  <g text-anchor="middle">
+    <g font-size="15" font-weight="600" fill="#e7ebed">
+      <text x="252" y="338">serial</text>
+      <text x="444" y="338">openmp</text>
+      <text x="636" y="338">mpi</text>
+      <text x="828" y="338">cuda</text>
+    </g>
+    <g font-size="12" fill="#9aa3a9">
+      <text x="252" y="357">host SoA arrays</text>
+      <text x="444" y="357">threads + SIMD</text>
+      <text x="636" y="357">block per rank + ring</text>
+      <text x="828" y="357">state on the device</text>
+    </g>
+    <g font-size="11" fill="#3d9f96" letter-spacing="1">
+      <text x="252" y="375">docker + windows</text>
+      <text x="444" y="375">docker</text>
+      <text x="636" y="375">docker</text>
+      <text x="828" y="375">windows</text>
+    </g>
+  </g>
+
+  <!-- ===== core ===== -->
+  <rect x="150" y="444" width="780" height="80" fill="#0f1214" stroke="#b3bbc1" stroke-opacity=".3"/>
+  <text x="166" y="466" font-size="12" fill="#9aa3a9">C11 core · no MPI, no CUDA, no I/O</text>
+  <g fill="#101315" stroke="#b3bbc1" stroke-opacity=".55">
+    <rect x="162" y="478" width="143" height="36"/>
+    <rect x="315" y="478" width="143" height="36"/>
+    <rect x="468" y="478" width="143" height="36"/>
+    <rect x="621" y="478" width="143" height="36"/>
+    <rect x="774" y="478" width="143" height="36"/>
+  </g>
+  <g text-anchor="middle" font-size="12" fill="#d5dadd">
+    <text x="233.5" y="501">particles (SoA)</text>
+    <text x="386.5" y="501">G · ε · dt</text>
+    <text x="539.5" y="501">init + RNG</text>
+    <text x="692.5" y="501">leapfrog</text>
+    <text x="845.5" y="501">ref. energy</text>
+  </g>
+
+  <!-- ===== platform ===== -->
+  <rect x="150" y="572" width="780" height="40" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="540" y="597" text-anchor="middle" font-size="12" fill="#d5dadd">platform · monotonic timer · aligned alloc · POSIX + Win32</text>
+
+  <!-- ===== dependencies (down only) ===== -->
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none">
+    <line x1="320" y1="82" x2="348" y2="82" marker-end="url(#arrow)"/>
+    <line x1="495" y1="116" x2="495" y2="162" marker-end="url(#arrow)"/>
+    <line x1="795" y1="116" x2="795" y2="162" marker-end="url(#arrow)"/>
+    <line x1="350" y1="198" x2="322" y2="198" marker-end="url(#arrow)"/>
+    <line x1="235" y1="232" x2="235" y2="278" marker-end="url(#arrow)"/>
+    <line x1="640" y1="232" x2="640" y2="278" marker-end="url(#arrow)"/>
+    <line x1="540" y1="396" x2="540" y2="442" marker-end="url(#arrow)"/>
+    <line x1="540" y1="524" x2="540" y2="570" marker-end="url(#arrow)"/>
+  </g>
+</svg>

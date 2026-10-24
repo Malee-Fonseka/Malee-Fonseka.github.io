@@ -1146,9 +1146,12 @@ a.figure__media:focus-visible::after { opacity: 1; }
   color: var(--text-faint);
   white-space: nowrap;
 }
+.table-wrap thead code { text-transform: none; }   /* code keeps its real case: sqrtf, not SQRTF */
 .table-wrap td:first-child { white-space: nowrap; color: var(--text); }
 /* A first column of sentences rather than short labels wraps like the rest */
 .table-wrap--text td:first-child { white-space: normal; }
+/* Columns of figures, right-aligned in the Markdown with ---: */
+.table-wrap .num { text-align: right; }
 .table-wrap tbody tr:last-child td { border-bottom: 0; }
 .table-wrap tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
 
