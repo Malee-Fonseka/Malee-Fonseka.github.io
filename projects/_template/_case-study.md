@@ -49,7 +49,7 @@ card:
   WRITING THE BODY
   ============================================================================
   Normal Markdown works: paragraphs, **bold**, *italic*, `code`, [links](url),
-  bullet and numbered lists, ### sub-headings and tables.
+  bullet and numbered lists, > quotes, ### sub-headings and tables.
   Comments like this one are notes to yourself and are left out of the page.
 
   ## Heading        Starts a numbered section and adds it to the contents.

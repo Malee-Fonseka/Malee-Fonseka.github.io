@@ -57,6 +57,7 @@ Section numbers (`SEC 01`), figure numbers (`FIG. 01`), contents numbers and car
 | Callout | `::: note` or `::: decision`, with an optional `"label"` | `<aside class="callout">` or `callout--decision` | Notes and design decisions |
 | Table | A Markdown table | `<div class="table-wrap"><table>` | Requirements, comparisons, results |
 | Code | `` ```js title="path/file.js" `` | `<figure class="code">` | Code excerpts with a filename header |
+| Quote | `> text` | `<blockquote>` | An example post, or words quoted from someone else |
 
 ### How a page is generated from Markdown
 

@@ -1,0 +1,581 @@
+<!doctype html>
+<!-- Generated from _case-study.md. Edit the Markdown and regenerate; changes made here are overwritten. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TruthBomb · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: A multi-agent fact-checker that reads Sri Lankan social media posts in Sinhala, Tamil, English and Singlish and checks them against trusted local news.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="TruthBomb · case study">
+  <meta property="og:description" content="A multi-agent fact-checker that reads Sri Lankan social media posts in Sinhala, Tamil, English and Singlish and checks them against trusted local news.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">truthbomb</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · University group project, AI module</p>
+        <h1 class="rise" style="--i:1">TruthBomb</h1>
+        <p class="cs-lede rise" style="--i:2">
+          TruthBomb takes a social media post written the way Sri Lankans actually write, in Sinhala,
+          Tamil, English or a mix typed in Latin script, and returns a verdict with its evidence,
+          explained in three languages. A fine-tuned 3.8B-parameter model on a consumer GPU turns the
+          post into one clean English claim. A LangGraph pipeline then gathers evidence, decides by
+          score whether local sources are enough, and settles the verdict with explicit rules, calling
+          a cloud model only when the evidence is unclear.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">LangGraph</li><li class="key">Phi-3.5-mini (fine-tuned)</li><li class="key">llama.cpp</li>
+          <li>Unsloth + LoRA</li><li>ChromaDB</li><li>BM25</li><li>Gemini API</li><li>FastAPI</li><li>React</li>
+          <li>TypeScript</li><li>Tesseract.js</li><li>Telethon</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/GiharaNavindu/TruthBomb" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#requirements">Requirements</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#implementation">How it works</a></li>
+              <li><a href="#evolution">How the design evolved</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              TruthBomb is an automated fact-checker for Sri Lankan social media. You paste a post (or a
+              screenshot of one) and it extracts the single claim the post is making, looks for evidence in a
+              live archive of news alerts and on trusted news sites, and returns one of four verdicts: True,
+              False, Misleading or Unverified. Each verdict comes with the evidence used, a short explanation
+              in English, Sinhala and Tamil, and a record of every step that led to it.
+            </p>
+            <p>
+              We built it as a four-person university team. The first version worked end to end, but its
+              decisions were made inside prompts and could not be explained or reproduced. Most of this case
+              study is about the rebuild that fixed that: the same models, rearranged so that code makes the
+              decisions and models only do the work that needs a model.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">4</span><span class="metrics__label">input languages, including code-mixed Singlish</span></li>
+              <li><span class="metrics__val">2.3 GB</span><span class="metrics__label">quantized model that runs extraction and local verification on one consumer GPU</span></li>
+              <li><span class="metrics__val">125</span><span class="metrics__label">benchmark posts: 25 news events, each written five different ways</span></li>
+              <li><span class="metrics__val">6</span><span class="metrics__label">pipeline steps, each one logged to an audit trail</span></li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">my part</p>
+              <p>
+                Teammates built the first fine-tuned extractor and the original multi-agent version, a
+                retrieval overhaul with evaluation scripts, and in-browser OCR. I led the five-phase redesign
+                described under <em>How the design evolved</em>: one canonical pipeline, grammar-constrained
+                extraction, a dedicated retrieval step, score-based routing and rules-first adjudication.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>
+              False claims about arrests, road accidents, floods, gazette notices and exam results spread on
+              Sri Lankan social media faster than newsrooms can correct them. Checking one by hand means
+              working out what the post actually claims, finding a credible report of the same event, and
+              judging whether the two agree. That is slow, and most posts are not written in a form that
+              standard tools can work with.
+            </p>
+            <p>The language is the first obstacle. A typical post looks like this:</p>
+            <blockquote>
+              <p><em>Train eka derail kara Galle station ta! 😱 5 ta people injured kiyala news dakka! Track eka
+              problem nada enna railway ta?</em></p>
+            </blockquote>
+            <p>
+              That is Sinhala grammar typed phonetically in Latin letters, mixed with English words, emoji and
+              a rhetorical question. Search engines and fact-checking models trained on clean English text
+              struggle with it. Posts in Sinhala or Tamil script, or in formal English, need to work just as
+              well.
+            </p>
+            <p>
+              Timing is the second obstacle. Breaking news reaches the official Telegram channels of Sri Lankan
+              news outlets well before articles are written and indexed by search engines, so a checker that
+              only searches the web misses the newest events, which are the ones most likely to be rumours.
+            </p>
+            <p>
+              Trust is the third. A bare "False" from a model gives a reader no reason to believe it. A useful
+              answer has to show which sources it relied on, how it weighed them, and has to say so in the
+              reader's own language.
+            </p>
+
+            <aside class="callout">
+              <p class="callout__label">about Singlish</p>
+              <p>
+                In Sri Lanka, "Singlish" means Sinhala written in the Latin alphabet and mixed with English.
+                It is not the Singaporean creole of the same name. Tamil speakers mix languages in the same way
+                ("Tanglish").
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 03 REQUIREMENTS ============ -->
+          <section class="cs-sec" id="requirements">
+            <h2>Requirements</h2>
+            <p>
+              From those problems we set out what the system had to do, and the conditions it had to work
+              under.
+            </p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">requirement</th><th scope="col">how TruthBomb meets it</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Read posts in English, Sinhala, Tamil and Singlish, typed or as a screenshot</td><td>A fine-tuned extractor normalizes any of the four into one English claim. Screenshots are read by OCR in the browser with English, Sinhala and Tamil language models.</td></tr>
+                  <tr><td>Ground every verdict in evidence from trusted sources</td><td>Local evidence comes from news outlets' Telegram channels. Web search is restricted to ten trusted news domains, and untrusted sources are down-weighted in ranking.</td></tr>
+                  <tr><td>Cover breaking news</td><td>A separate worker polls the Telegram channels every 60 seconds and skips messages it has already stored.</td></tr>
+                  <tr><td>Return one of four verdicts: True, False, Misleading, Unverified</td><td>A single canonical vocabulary, assigned by a rules-first adjudicator.</td></tr>
+                  <tr><td>Explain the verdict in English, Sinhala and Tamil</td><td>A translation step writes a two-sentence summary in each language.</td></tr>
+                  <tr><td>Run on a consumer GPU</td><td>The extractor is a 4-bit GGUF model (2.3 GB). One loaded copy serves both extraction and local verification.</td></tr>
+                  <tr><td>Be reproducible and auditable</td><td>Temperature 0 everywhere, grammar- or schema-constrained model output, threshold-based routing and adjudication, and a per-step audit trail returned with every response.</td></tr>
+                  <tr><td>Degrade instead of failing</td><td>Every step has a defined fallback, and the fallback is recorded in the audit trail.</td></tr>
+                  <tr><td>Keep cloud calls few</td><td>The cloud model (Gemini) is used only for web verification, unclear verdicts and translation.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 04 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              The system has three parts. A <strong>browser app</strong> collects the post. A <strong>FastAPI service</strong> runs the
+              fact-checking pipeline, which is a LangGraph state graph. A separate <strong>ingestion worker</strong> keeps
+              the local evidence store up to date. The API is deliberately thin: it validates the request,
+              runs the graph off the event loop and maps the graph's final state onto the response. Every
+              decision happens inside the graph.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
+                <img src="images/architecture.svg" alt="Architecture diagram. A browser sends post text to a FastAPI service, which runs a LangGraph pipeline of six steps: extract, retrieve, a score check that routes to either a local or a web verifier, adjudicate and translate. Extract and the local verifier run on a local fine-tuned Phi-3.5 model; the web verifier and translate call Gemini; retrieve, the score check and adjudicate are plain code. Below the graph, a Telegram ingest worker feeds ChromaDB, which retrieve reads, and DuckDuckGo search over ten trusted domains feeds the web verifier." width="960" height="530" loading="lazy">
+              </a>
+              <figcaption>One request through the system. Colour shows where each step runs: teal on the local GPU, amber on the Gemini API, plain boxes are ordinary code. The verdict travels back to the browser with the trilingual summary and the audit trail.</figcaption>
+            </figure>
+
+            <p>
+              All the steps share one state object: the raw post, its language, the extracted claim, the
+              retrieved documents with their scores, each verifier's output, the final verdict and the audit
+              trail. A step reads what it needs and writes only its own fields. The audit trail is the one
+              field that is merged rather than overwritten, so each step appends a line saying what it did
+              and whether it succeeded.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>The first version had two verification paths. The API ran its own extract, search and judge sequence, and the LangGraph pipeline did something similar with different retrieval. The same post could get different verdicts depending on which path ran, and the Telegram worker, with hard-coded credentials, ran inside the API process.</dd>
+                <dt>decision</dt>
+                <dd>Make the graph the only pipeline. The API became a transport layer, the ingestion worker became a standalone process, and all credentials moved to environment variables.</dd>
+                <dt>trade-off</dt>
+                <dd>There is now one place to reason about, test and log. The cost was losing the API's shortcut path, so every request pays for the full graph.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ 05 IMPLEMENTATION ============ -->
+          <section class="cs-sec" id="implementation">
+            <h2>How it works</h2>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Extract</strong><span>post → one English claim and its language</span></li>
+                  <li class="flow__node"><strong>Retrieve</strong><span>keyword and semantic search, fused and re-ranked</span></li>
+                  <li class="flow__node"><strong>Route</strong><span>is the local evidence strong enough?</span></li>
+                  <li class="flow__node"><strong>Verify</strong><span>stance and confidence, from local or web evidence</span></li>
+                  <li class="flow__node flow__node--key"><strong>Decide</strong><span>rules first; a model only when the evidence is unclear</span></li>
+                </ol>
+              </div>
+              <figcaption>The request path. Steps 1 and 4 use models; steps 2, 3 and 5 are deterministic code, which is what makes a verdict traceable.</figcaption>
+            </figure>
+
+            <h3>Reading the post: a fine-tuned extractor</h3>
+            <p>
+              The first step turns a noisy post into a claim that search can work with. We fine-tuned
+              <strong>Phi-3.5-mini-instruct</strong> (3.8B parameters) with <strong>Unsloth</strong> and <strong>LoRA</strong> on Google Colab,
+              using 4-bit training and Alpaca-style prompts. The training set has 425 examples, each a post in
+              Sinhala, Singlish or code-mixed English paired with the plain English claim it makes:
+            </p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">post</th><th scope="col">target claim</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><em>Train eka derail kara Galle station ta! 😱 5 ta people injured kiyala news dakka!</em></td><td>Train derailed near Galle station; 5 passengers injured.</td></tr>
+                  <tr><td><em>mchn parliament eka krook full nada! MP eka bank fraud kara gana! 😤 Airport ta catch kara arrest kiyapala!</em></td><td>Parliamentary member arrested for banking fraud at airport.</td></tr>
+                  <tr><td><em>Landslide warning! 😱 Central highlands ta evacuate kara labala inna!</em></td><td>Landslide evacuation ordered for central highlands due to heavy rainfall.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              The adapters were merged into the base model and exported as a 4-bit <strong>GGUF</strong> file (Q4_K_M,
+              2.3 GB), which <strong>llama.cpp</strong> runs with every layer on the GPU. At inference time the model runs
+              at temperature 0 under a <strong>GBNF grammar</strong>, a formal grammar applied while tokens are generated,
+              so the only output it can produce is <code>{"language": …, "extracted_claim": …}</code> with the language
+              limited to four values. It cannot answer with prose, markdown or broken JSON, so nothing
+              downstream has to clean up its output.
+            </p>
+
+            <h3>Finding evidence: hybrid retrieval</h3>
+            <p>
+              Retrieval combines two searches over the local store, because each misses things the other
+              finds:
+            </p>
+            <ul>
+              <li>
+                <strong>Semantic search</strong> in ChromaDB, using the multilingual <code>paraphrase-multilingual-MiniLM-L12-v2</code>
+                embedding model, so a claim derived from a Sinhala post can match an English news alert about
+                the same event.
+              </li>
+              <li>
+                <strong>Keyword search</strong> with BM25, which catches exact names, places, numbers and acronyms that
+                embeddings tend to blur.
+              </li>
+            </ul>
+            <p>
+              An early version merged the two lists by hand and gave every BM25 hit a flat score of 1.0,
+              which put dense distances and keyword ranks on incompatible scales. We replaced that with
+              <strong>Reciprocal Rank Fusion</strong> (RRF, k = 60), which only looks at rank positions. The fused list is
+              then re-weighted by <strong>source tier</strong> (trusted sources × 1.0, others × 0.6) and <strong>recency</strong> (from
+              × 1.0 for the last week down to × 0.35 for anything over a year old), and the top four are kept.
+              Every component score is stored with the document, so the interface can show why a source ranked
+              where it did.
+            </p>
+            <p>
+              In parallel, a teammate's retrieval overhaul added an optional cross-encoder re-ranker and an
+              offline evaluation that reports Recall@5, MRR and nDCG@5 using the benchmark's event IDs as
+              ground truth. That meant changes to retrieval could be measured instead of judged by eye.
+            </p>
+
+            <h3>Choosing where to verify: score-based routing</h3>
+            <p>
+              The router takes the best semantic match from retrieval, expressed as a similarity between 0 and
+              1. If it reaches <strong>0.4</strong>, the local archive has something close enough to check against, and the
+              claim goes to the local verifier. If it does not, the claim goes to web search.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>Version one asked Gemini to label each claim "local" or "web" before any evidence had been retrieved. The label was a guess about where evidence might be, it couldn't be reproduced, and when the call failed everything was quietly sent to web search.</dd>
+                <dt>decision</dt>
+                <dd>Retrieve first, then route on the measured strength of the best local match against a fixed threshold.</dd>
+                <dt>trade-off</dt>
+                <dd>Routing is now deterministic, free and testable. But similarity is not the same as relevance: a close match about a different event can pass the threshold, and 0.4 is a starting default that still needs calibrating against the benchmark.</dd>
+              </dl>
+            </aside>
+
+            <h3>Verifying: one contract, two verifiers</h3>
+            <p>
+              Both verifiers return the same shape: a <strong>stance</strong> (SUPPORTED, REFUTED or INSUFFICIENT), a
+              <strong>confidence</strong> from 0 to 100 and a one-sentence reason. A stance is a verdict on the evidence,
+              not on the claim. Turning stances into a final answer is a separate step.
+            </p>
+            <ul>
+              <li>
+                The <strong>local verifier</strong> reuses the GGUF model that is already loaded for extraction, so only one
+                copy sits in VRAM. A second grammar limits its output to the stance shape. If retrieval found
+                nothing, it returns INSUFFICIENT without calling the model at all.
+              </li>
+              <li>
+                The <strong>web verifier</strong> searches DuckDuckGo with <code>site:</code> filters for ten trusted Sri Lankan news
+                and government domains, then asks Gemini 2.5 Flash-Lite, in JSON-schema mode at temperature 0,
+                for the same stance shape plus the sources it used. If the restricted search fails, it falls
+                back to an open search but labels those results UNRESTRICTED, and the prompt tells the model
+                to demand official corroboration for them.
+              </li>
+            </ul>
+
+            <figure class="code">
+              <figcaption class="code__file"><span>src/tools/local_verifier.py</span><span>gbnf · excerpt</span></figcaption>
+<pre><code><span class="tok-f">root</span>   ::= <span class="tok-s">"{"</span> ws <span class="tok-s">"\"stance\""</span> ws <span class="tok-s">":"</span> ws stance ws <span class="tok-s">","</span> ws <span class="tok-s">"\"confidence\""</span> ws <span class="tok-s">":"</span> ws number ws <span class="tok-s">","</span> ws <span class="tok-s">"\"reasoning\""</span> ws <span class="tok-s">":"</span> ws string ws <span class="tok-s">"}"</span>
+<span class="tok-f">stance</span> ::= <span class="tok-s">"\"SUPPORTED\""</span> | <span class="tok-s">"\"REFUTED\""</span> | <span class="tok-s">"\"INSUFFICIENT\""</span>
+<span class="tok-f">number</span> ::= digit ( digit ( digit )? )?</code></pre>
+            </figure>
+
+            <p>
+              Because both verifiers keep to this contract, the next step does not need to know where the
+              evidence came from.
+            </p>
+
+            <h3>Deciding: rules first, model second</h3>
+            <p>
+              The adjudicator maps stances onto the four verdicts. Clear cases are decided by fixed rules;
+              Gemini is called only for borderline confidence or conflicting evidence.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">evidence</th><th scope="col">confidence</th><th scope="col">verdict</th><th scope="col">decided by</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>one side (supported or refuted)</td><td>70 or more</td><td>True or False</td><td>rules</td></tr>
+                  <tr><td>one side</td><td>40 to 69</td><td>any of the four</td><td>Gemini</td></tr>
+                  <tr><td>one side</td><td>below 40</td><td>Unverified</td><td>rules</td></tr>
+                  <tr><td>both supported and refuted</td><td>any</td><td>any of the four</td><td>Gemini</td></tr>
+                  <tr><td>only insufficient, or none</td><td>—</td><td>Unverified</td><td>rules</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              "Misleading" can only come from the Gemini path. That is intentional: deciding that a claim is
+              partly true or deceptively framed takes judgement that a threshold cannot supply. Each verdict
+              records which path produced it (<code>rules</code> or <code>gemini</code>). If Gemini fails on a borderline case, the
+              verdict falls back to the direction of the stance; if it fails on a conflict, the verdict is
+              Unverified.
+            </p>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>In version one a single free-form Gemini prompt chose the verdict, the confidence and the translations all at once, and the code parsed its reply by stripping markdown fences and hoping the rest was JSON.</dd>
+                <dt>decision</dt>
+                <dd>Split that into a structured verification step, a rules-first adjudicator and a separate translator.</dd>
+                <dt>trade-off</dt>
+                <dd>Clear-cut verdicts are now reproducible and cost no API call, and every verdict says how it was reached. The thresholds (40 and 70) are design choices that have to be defended and calibrated rather than left to a model.</dd>
+              </dl>
+            </aside>
+
+            <h3>Explaining: translation and the audit trail</h3>
+            <p>
+              The translator asks Gemini, in JSON-schema mode, for a two-sentence summary of the verdict in
+              English, Sinhala and Tamil. It is best effort by design: if it fails, the response carries an
+              English-only summary and the audit trail records the failure, so a translation problem never
+              blocks a verdict.
+            </p>
+            <p>
+              The audit trail is what the whole redesign was aiming at. Every step appends a status and a short
+              detail, such as which model extracted the claim and in what language, how many documents were
+              retrieved and how strong the best match was, which verifier ran and what stance it returned, and
+              whether the verdict came from rules or from Gemini. The API returns the trail with the verdict,
+              so anyone can see how an answer was reached.
+            </p>
+
+            <h3>Keeping the evidence fresh</h3>
+            <p>
+              The ingestion worker connects to Telegram over MTProto using Telethon and polls the channels of
+              Ada Derana, News 1st and Hiru News. Each message is stored with its source, message ID and
+              timestamp, and IDs already in the store are skipped. Running it as its own process means a
+              Telegram outage or a login prompt never holds up a fact-check request.
+            </p>
+
+            <h3>The interface</h3>
+            <p>
+              The front end is a React and TypeScript app built with Vite, Tailwind and shadcn/ui. Users can
+              paste text or upload a screenshot. <strong>Tesseract.js</strong> reads the screenshot in the browser using its
+              English, Sinhala and Tamil models, so the image never leaves the device. The result card
+              colour-codes the verdict, shows a confidence bar, switches between the three language summaries
+              on tabs, and lists each piece of evidence with its source tier, timestamp and scores.
+            </p>
+          </section>
+
+          <!-- ============ 06 EVOLUTION ============ -->
+          <section class="cs-sec" id="evolution">
+            <h2>How the design evolved</h2>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Traffic-law prototype</strong><span>Phi-3.5 + RAG over Sri Lanka's motor traffic law</span></li>
+                  <li class="flow__node"><strong>General fact-checker</strong><span>LLM triage, two researchers, one synthesis prompt</span></li>
+                  <li class="flow__node flow__node--key"><strong>Phased redesign</strong><span>one change per phase, each fixing a known failure</span></li>
+                </ol>
+              </div>
+              <figcaption>TruthBomb started as a single-domain experiment and was generalized before it was made dependable.</figcaption>
+            </figure>
+
+            <p>
+              The project began as a fine-tuned model that checked claims about traffic law against the Motor
+              Traffic Act. Generalizing it to any news topic produced a working multi-agent system: an LLM
+              triage agent, a local and a web researcher, and a synthesis agent that wrote the verdict. It
+              demonstrated well, but it was hard to trust. Results could change between runs, failures were
+              silent, and no one could say why a given verdict came out the way it did.
+            </p>
+            <p>We rebuilt it in five phases. Each phase changed one thing and was tested before the next began:</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">phase</th><th scope="col">change</th><th scope="col">problem it fixed</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>1</td><td>LangGraph becomes the only pipeline; API made thin; ingestion moved to its own process</td><td>Two verification paths that could disagree; credentials in source code</td></tr>
+                  <tr><td>2</td><td>Grammar-constrained extraction at temperature 0; routing taken out of the extractor</td><td>Free-text output that needed cleaning up; routing guessed before any evidence existed</td></tr>
+                  <tr><td>3</td><td>A dedicated retrieval step with fusion and tier and recency re-ranking</td><td>Retrieval hidden inside a tool, with no scores visible to the rest of the graph</td></tr>
+                  <tr><td>4</td><td>Score-based routing; both verifiers emit the same stance contract</td><td>Prose findings that nothing downstream could reason about</td></tr>
+                  <tr><td>5</td><td>Rules-first adjudication, separate translator, audit trail, widened response schema</td><td>One free-form prompt deciding everything; no Misleading verdict in the API; no trace</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 07 RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>
+              TruthBomb runs end to end on a laptop with a consumer GPU and a Gemini API key. It takes a post
+              or a screenshot in any of the four input languages and returns a verdict with its evidence, a
+              trilingual explanation and a step-by-step audit trail.
+            </p>
+            <p>The project includes its own evaluation:</p>
+            <ul>
+              <li>
+                <strong>A 125-post benchmark</strong>: 25 news events across 11 categories, including arrests, accidents,
+                weather alerts, court rulings, gazette notices, strikes and exam results. Each event is written
+                in five styles: formal Sinhala, two informal Singlish variants and two code-mixed variants.
+              </li>
+              <li>
+                <strong>An accuracy run</strong> that sends every post through the live API and reports per-class precision
+                and recall and a weighted F1 score.
+              </li>
+              <li>
+                <strong>A retrieval evaluation</strong> that reports Recall@5, MRR and nDCG@5, using the benchmark's event
+                IDs as ground truth, so retrieval can be measured without hand labelling.
+              </li>
+              <li><strong>Unit tests</strong> for rank fusion, which run without models or a database.</li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">still open</p>
+              <p>
+                The routing threshold (0.4) and the adjudication bands (40 and 70) are documented starting
+                defaults. They have not yet been calibrated against the benchmark. That is the next piece of work,
+                and it is far easier now that each decision is a number in one config file instead of wording in
+                a prompt. The benchmark also has a known flaw: its posts are part of the extractor's training
+                data, so it measures retrieval and verification fairly but flatters extraction. A held-out set of
+                new posts is needed before any extraction score can be trusted.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 08 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li>
+                <strong>Put the decisions you need to explain in code, not in prompts.</strong> Routing and adjudication
+                went from "the model said so" to a threshold you can read, test and change. The models still
+                do the language work, which is what they are good at.
+              </li>
+              <li>
+                <strong>Constrain model output while it is generated, not afterwards.</strong> Grammars for the local model
+                and JSON schemas for Gemini removed a whole class of failures where the model replied in
+                markdown or prose, along with the code that tried to clean that up.
+              </li>
+              <li>
+                <strong>A shared contract makes components interchangeable.</strong> Once both verifiers returned the same
+                stance shape, the adjudicator could be simple rules, and adding a third evidence source would
+                not change it.
+              </li>
+              <li>
+                <strong>Design the failure path for every step.</strong> Each node has a defined fallback and logs it, so a
+                translation outage produces an English-only answer instead of an error page.
+              </li>
+              <li>
+                <strong>Next time, agree the target architecture before branching.</strong> We built two retrieval
+                implementations in parallel on separate branches, and later merges brought back pieces the
+                redesign had removed. Next time I would write down the architecture and the interfaces between
+                steps first, then split the work.
+              </li>
+              <li>
+                <strong>Keep test data out of training data from the first day.</strong> Our benchmark posts were reused
+                as fine-tuning examples, which means the benchmark cannot measure the extractor honestly. I
+                would split off a held-out set before generating any training data.
+              </li>
+              <li>
+                <strong>Calibrate before you add features.</strong> I would run the benchmark and tune the thresholds
+                before anything else. I would also update the keyword index incrementally: at the moment new
+                Telegram posts appear in semantic search straight away but only reach BM25 after a restart.
+              </li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

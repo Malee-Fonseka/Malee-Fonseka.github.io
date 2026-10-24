@@ -990,6 +990,16 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .prose ol:not([class]) > li + li { margin-top: 0.45em; }
 .prose ol:not([class]) > li::marker { color: var(--teal); }
 
+/* Quotations, such as an example post: "> text" in the Markdown */
+.prose blockquote {
+  max-width: 72ch;
+  margin-inline: 0;
+  margin-bottom: 0;
+  padding: 2px 0 2px 18px;
+  border-left: 2px solid var(--line-3);
+  color: var(--text);
+}
+
 .prose strong { color: var(--text-head); font-weight: 600; }
 .prose :not(pre) > code {
   padding: 1px 6px;
