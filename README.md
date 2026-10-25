@@ -63,7 +63,7 @@ Section numbers (`SEC 01`), figure numbers (`FIG. 01`), contents numbers and car
 
 Claude follows the markup in `projects/_template/index.html`, so generated pages match hand-written ones:
 
-- **Head:** the `<title>` is "*title* · Maleesha Fonseka", the meta description is "Case study: " followed by `description`, and the `og:` tags use the title and description. The breadcrumb ends with the slug.
+- **Head:** the `<title>` is "*title* · Maleesha Fonseka", the meta description is "Case study: " followed by `description`, and the `og:` tags use the title and description. The breadcrumb ends with the slug, and above it a "← all projects" link leads back to the projects page, like the one at the bottom of the article.
 - **Header and footer:** the same as in `projects.html`, so nav and contact links stay current.
 - **Contents:** one entry per `##` section, in order.
 - **Figures:** each image links to its full-size file, loads lazily, and gets a `width` and `height` read from the image file, so the page doesn't jump while it loads.
@@ -71,7 +71,7 @@ Claude follows the markup in `projects/_template/index.html`, so generated pages
 - **Galleries:** if every image in a gallery is more than twice as wide as it is tall, the gallery gets `gallery--wide`, which fits two to a row instead of up to four.
 - **Code:** escaped, and coloured with the `tok-*` classes (keywords, strings, numbers, comments and function names).
 - **Links:** external links open in a new tab, like every other external link on the site.
-- **Card:** status `complete`, `in progress` or `archived` becomes `status--done`, `status--wip` or `status--archived`. The area becomes the card's `data-area` id (`ai`, `data-engineering`, `software-systems`, `research` or `other`) and its name in the card's footer. The card's tech stack falls back to the page's if it has none of its own.
+- **Card:** it shows the card number, title, description, tech stack and area. The front matter's `year` and `status` aren't shown on the card; they're kept only as a record. The area becomes the card's `data-area` id (`ai`, `data-engineering`, `software-systems`, `research` or `other`) and its name in the card's footer. The card's tech stack falls back to the page's if it has none of its own.
 - **Comments** in the Markdown are notes to yourself and are left out of the page.
 
 For diagrams, draw them in [draw.io](https://app.diagrams.net/), [Excalidraw](https://excalidraw.com/) or Figma and export them as SVG or PNG. A dark background (`#0d1011`) with light lines matches the site best.

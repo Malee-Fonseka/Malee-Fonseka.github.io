@@ -34,8 +34,8 @@ links:                        # delete any you do not have
 
 # ---- card on projects.html ---------------------------------------------------
 card:
-  year: 2026
-  status: complete            # complete | in progress | archived
+  year: 2026                  # year and status are a record only;
+  status: complete            # neither is shown on the card. complete | in progress | archived
   description: >
     One or two sentences: what it is and why it is interesting.
   area: software systems      # ai | data engineering | software systems | research | other

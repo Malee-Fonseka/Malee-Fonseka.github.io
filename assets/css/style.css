@@ -437,28 +437,6 @@ html.snap .site-footer { scroll-snap-align: end; }
   color: var(--teal-hi);
 }
 
-/* Status tag: done / wip / archived */
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-.status::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentColor;
-}
-.status--done { color: var(--silver); }
-.status--done::before { background: currentColor; }
-.status--wip { color: var(--teal-hi); }
-.status--wip::before { background: currentColor; animation: pulse 2.4s ease-in-out infinite; }
-.status--archived { color: var(--text-faint); }
-
 /* Pulsing teal square, used beside status text */
 .dot {
   width: 7px;
@@ -812,7 +790,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 /* P-01, P-02 … numbered automatically in page order */
 .card__meta::before { content: "P-" counter(project, decimal-leading-zero); color: var(--silver); }
-.card__meta .status { margin-left: auto; }
 
 .card__title { font-size: 1.3rem; }
 .card__link { color: inherit; text-decoration: none; }
@@ -858,6 +835,10 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
    ========================================================================== */
 
 .cs-head { padding-block: clamp(40px, 7vw, 80px) clamp(40px, 6vw, 64px); }
+
+/* Link back to the projects page, above the breadcrumb; matches the pager at the bottom */
+.cs-back { display: inline-block; margin-bottom: 14px; font-size: var(--fs-sm); color: var(--text-dim); text-decoration: none; }
+.cs-back:hover { color: var(--teal-hi); }
 
 .cs-kicker {
   margin-bottom: 14px;
