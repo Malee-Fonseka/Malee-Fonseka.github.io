@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" width="960" height="440" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>Strong scaling of OpenMP and MPI against the serial baseline</title>
+  <desc>Log-log line chart of speedup over serial against worker count, N = 16,384, original kernel. OpenMP: 1.96x at 2 threads, 3.51x at 4, 4.35x at 8, 6.69x at 16 threads with SMT. MPI: 1.96x at 2 ranks, 2.86x at 4, 4.03x at 8. An ideal-linear reference line rises from 1x at 1 worker to 16x at 16.</desc>
+  <rect width="960" height="440" fill="#0d1011"/>
+
+  <!-- title + legend -->
+  <text x="24" y="36" font-size="12" fill="#9aa3a9">speedup vs serial · N = 16,384 · log–log</text>
+  <g stroke-linecap="round">
+    <line x1="560" y1="32" x2="584" y2="32" stroke="#3987e5" stroke-width="2"/>
+    <line x1="676" y1="32" x2="700" y2="32" stroke="#d95926" stroke-width="2"/>
+    <line x1="760" y1="32" x2="784" y2="32" stroke="#5a646a" stroke-width="1.5"/>
+  </g>
+  <g font-size="12" fill="#d5dadd">
+    <text x="592" y="36">OpenMP</text>
+    <text x="708" y="36">MPI</text>
+    <text x="792" y="36">ideal linear</text>
+  </g>
+
+  <!-- grid + baseline -->
+  <g stroke="#1c2326" stroke-width="1">
+    <line x1="100" y1="60" x2="820" y2="60"/>
+    <line x1="100" y1="135" x2="820" y2="135"/>
+    <line x1="100" y1="210" x2="820" y2="210"/>
+    <line x1="100" y1="285" x2="820" y2="285"/>
+  </g>
+  <line x1="100" y1="360" x2="820" y2="360" stroke="#2e363a" stroke-width="1"/>
+
+  <!-- axes labels -->
+  <g font-size="12" fill="#788187" text-anchor="end">
+    <text x="84" y="64">16×</text>
+    <text x="84" y="139">8×</text>
+    <text x="84" y="214">4×</text>
+    <text x="84" y="289">2×</text>
+    <text x="84" y="364">1×</text>
+  </g>
+  <g font-size="12" fill="#788187" text-anchor="middle">
+    <text x="100" y="382">1</text>
+    <text x="280" y="382">2</text>
+    <text x="460" y="382">4</text>
+    <text x="640" y="382">8</text>
+    <text x="820" y="382">16</text>
+  </g>
+  <text x="460" y="414" font-size="12" fill="#9aa3a9" text-anchor="middle">workers (OpenMP threads or MPI ranks)</text>
+
+  <!-- ideal reference -->
+  <line x1="100" y1="360" x2="820" y2="60" stroke="#5a646a" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- series -->
+  <g fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <polyline points="100,360 280,287.2 460,224.1 640,200.9 820,154.3" stroke="#3987e5"/>
+    <polyline points="100,360 280,287.2 460,246.3 640,209.2" stroke="#d95926"/>
+  </g>
+  <g stroke="#0d1011" stroke-width="2">
+    <g fill="#3987e5">
+      <circle cx="100" cy="360" r="4"/>
+      <circle cx="280" cy="287.2" r="4"/>
+      <circle cx="460" cy="224.1" r="4"/>
+      <circle cx="640" cy="200.9" r="4"/>
+      <circle cx="820" cy="154.3" r="4"/>
+    </g>
+    <g fill="#d95926">
+      <circle cx="100" cy="360" r="4"/>
+      <circle cx="280" cy="287.2" r="4"/>
+      <circle cx="460" cy="246.3" r="4"/>
+      <circle cx="640" cy="209.2" r="4"/>
+    </g>
+  </g>
+
+  <!-- selective direct labels (text tokens, not series colours) -->
+  <g font-size="12" fill="#d5dadd">
+    <text x="834" y="158">OpenMP 6.69×</text>
+    <text x="652" y="228">MPI 4.03×</text>
+  </g>
+  <g font-size="11" fill="#788187">
+    <text x="834" y="174">16 threads, SMT</text>
+    <text x="834" y="64">ideal 16×</text>
+  </g>
+</svg>

@@ -44,6 +44,13 @@
   --teal-fill:  #143936;
   --teal-wash:  rgba(61, 159, 150, 0.08);
 
+  /* Project areas: the small square beside each area on the projects page */
+  --area-ai:       #9d8fdc;
+  --area-data:     #78b37a;
+  --area-software: #6f9ad6;
+  --area-research: #cf9a5b;
+  --area-other:    #8a9399;
+
   /* Type: Fira Code, weight 450 matches the "Retina" cut */
   --font: "Fira Code", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
   --fs-xs:   0.72rem;
@@ -84,6 +91,8 @@ html {
 
 body {
   min-height: 100vh;
+  -webkit-user-select: none;   /* text can't be selected on any page */
+  user-select: none;
   display: flex;
   flex-direction: column;
   font-family: var(--font);
@@ -131,7 +140,6 @@ a {
 a:hover { color: #8fd8cf; text-decoration-color: currentColor; }
 
 :focus-visible { outline: 1px solid var(--teal-hi); outline-offset: 3px; }
-::selection { background: var(--teal-lo); color: #fff; }
 
 h1, h2, h3, h4 {
   font-weight: 600;
@@ -429,28 +437,6 @@ html.snap .site-footer { scroll-snap-align: end; }
   color: var(--teal-hi);
 }
 
-/* Status tag: done / wip / archived */
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-.status::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentColor;
-}
-.status--done { color: var(--silver); }
-.status--done::before { background: currentColor; }
-.status--wip { color: var(--teal-hi); }
-.status--wip::before { background: currentColor; animation: pulse 2.4s ease-in-out infinite; }
-.status--archived { color: var(--text-faint); }
-
 /* Pulsing teal square, used beside status text */
 .dot {
   width: 7px;
@@ -577,7 +563,7 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   width: 100%;
   height: 100%;
 
-  --life-1: #34445e;            /* conway and murmuration: blue */
+  --life-1: #34445e;            /* conway (and the murmuration, now off): blue */
   --life-2: #2f5652;            /* teal */
   --life-3: #5e3533;            /* red */
   --life-4: #6b5035;            /* orange */
@@ -694,9 +680,73 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 /* 6. Projects index
    ========================================================================== */
 
+/* Area filter: shown by assets/js/project-filter.js, hidden without JavaScript */
+.filters {
+  padding: 16px 20px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-md);
+}
+.filters__label {
+  margin-bottom: 10px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.filters__opts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  color: var(--text-dim);
+  box-shadow: var(--shadow-sm);
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s, color 0.2s, background-color 0.2s;
+}
+.filter:hover { color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.filter[aria-pressed="true"] { background: var(--teal-fill); color: var(--text-head); }
+.filter__n { font-size: var(--fs-xs); color: var(--text-faint); }
+.filter[aria-pressed="true"] .filter__n { color: var(--teal-hi); }
+
+/* "1 project · software systems", between the filter and the cards */
+.filters-status {
+  margin: 32px 0 16px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.filters-status b { color: var(--silver); font-weight: 500; }
+
+/* Area colours, keyed by data-area on a card or a filter button */
+[data-area="ai"]               { --area: var(--area-ai); }
+[data-area="data-engineering"] { --area: var(--area-data); }
+[data-area="software-systems"] { --area: var(--area-software); }
+[data-area="research"]         { --area: var(--area-research); }
+[data-area="other"]            { --area: var(--area-other); }
+
+/* Area name with its coloured square, on cards and filter buttons */
+.area { display: inline-flex; align-items: center; gap: 8px; }
+.area::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: var(--area, var(--text-faint));
+}
+
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 24px;
   counter-reset: project;
 }
@@ -705,7 +755,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;              /* rounds the thumbnail's top corners */
   border-radius: var(--radius-md);
   background: var(--bg-1);
   box-shadow: var(--shadow-md);
@@ -714,21 +763,13 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 .card:hover { background: var(--bg-2); transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .card:has(.card__link:focus-visible) { outline: 1px solid var(--teal-hi); outline-offset: 3px; }
-
-.card__thumb {
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-media);
+/* Each project card is a dark shade of its area's colour. The faint text is
+   lifted a little so it keeps its contrast on the tint. */
+.card[data-area] {
+  --text-faint: #8a939a;
+  background: color-mix(in srgb, var(--area) 14%, var(--bg-1));
 }
-.card__thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.6) brightness(0.85);
-  transition: filter 0.4s, transform 0.6s var(--ease);
-}
-.card:hover .card__thumb img { filter: none; transform: scale(1.02); }
+.card[data-area]:hover { background: color-mix(in srgb, var(--area) 20%, var(--bg-2)); }
 
 .card__body {
   flex: 1;
@@ -749,7 +790,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 }
 /* P-01, P-02 … numbered automatically in page order */
 .card__meta::before { content: "P-" counter(project, decimal-leading-zero); color: var(--silver); }
-.card__meta .status { margin-left: auto; }
 
 .card__title { font-size: 1.3rem; }
 .card__link { color: inherit; text-decoration: none; }
@@ -779,7 +819,6 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .card--ghost {
   justify-content: center;
   align-items: center;
-  min-height: 280px;
   padding: 32px;
   text-align: center;
   background: rgba(255, 255, 255, 0.015);
@@ -795,7 +834,11 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 /* 7. Case study (project detail pages)
    ========================================================================== */
 
-.cs-head { padding-block: clamp(40px, 7vw, 80px) clamp(28px, 4vw, 40px); }
+.cs-head { padding-block: clamp(40px, 7vw, 80px) clamp(40px, 6vw, 64px); }
+
+/* Link back to the projects page, above the breadcrumb; matches the pager at the bottom */
+.cs-back { display: inline-block; margin-bottom: 14px; font-size: var(--fs-sm); color: var(--text-dim); text-decoration: none; }
+.cs-back:hover { color: var(--teal-hi); }
 
 .cs-kicker {
   margin-bottom: 14px;
@@ -807,32 +850,8 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .cs-head h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); letter-spacing: -0.035em; }
 .cs-lede { margin-top: 18px; max-width: 66ch; font-size: var(--fs-md); color: var(--text-dim); }
 
-/* Project facts strip: year, role, team, timeline, status */
-.cs-meta {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 32px;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--bg-1);
-  box-shadow: var(--shadow-md);
-}
-.cs-meta > div {
-  flex: 1 1 150px;
-  padding: 12px 16px;
-}
-.cs-meta dt {
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-.cs-meta dd { font-size: var(--fs-sm); color: var(--text); }
-
-.cs-head .chips { margin-top: 20px; }
+.cs-head .chips { margin-top: 24px; }
 .cs-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
-
-.cs-cover { margin-bottom: clamp(40px, 6vw, 72px); }
 
 .cs-layout {
   display: grid;
@@ -952,6 +971,16 @@ a.ledger__row:hover .ledger__go { color: var(--teal-hi); transform: translate(2p
 .prose ol:not([class]) > li + li { margin-top: 0.45em; }
 .prose ol:not([class]) > li::marker { color: var(--teal); }
 
+/* Quotations, such as an example post: "> text" in the Markdown */
+.prose blockquote {
+  max-width: 72ch;
+  margin-inline: 0;
+  margin-bottom: 0;
+  padding: 2px 0 2px 18px;
+  border-left: 2px solid var(--line-3);
+  color: var(--text);
+}
+
 .prose strong { color: var(--text-head); font-weight: 600; }
 .prose :not(pre) > code {
   padding: 1px 6px;
@@ -1019,8 +1048,6 @@ a.figure__media:focus-visible::after { opacity: 1; }
   letter-spacing: 0.08em;
   color: var(--teal);
 }
-.figure--cover { counter-increment: none; }
-.figure--cover figcaption::before { content: "COVER  "; }
 
 /* Image grid: screenshots, wireframes */
 .gallery {
@@ -1028,6 +1055,8 @@ a.figure__media:focus-visible::after { opacity: 1; }
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
   gap: 16px;
 }
+/* Wide images (over 2:1, such as before-and-after strips) go two to a row, so they stay legible */
+.gallery--wide { grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
 
 /* HTML-only flow diagram: <ol class="flow"> with <li class="flow__node"> steps */
 .flow {
@@ -1108,7 +1137,12 @@ a.figure__media:focus-visible::after { opacity: 1; }
   color: var(--text-faint);
   white-space: nowrap;
 }
+.table-wrap thead code { text-transform: none; }   /* code keeps its real case: sqrtf, not SQRTF */
 .table-wrap td:first-child { white-space: nowrap; color: var(--text); }
+/* A first column of sentences rather than short labels wraps like the rest */
+.table-wrap--text td:first-child { white-space: normal; }
+/* Columns of figures, right-aligned in the Markdown with ---: */
+.table-wrap .num { text-align: right; }
 .table-wrap tbody tr:last-child td { border-bottom: 0; }
 .table-wrap tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
 
@@ -1379,6 +1413,10 @@ a.figure__media:focus-visible::after { opacity: 1; }
 
   .ledger__k { flex-basis: 7ch; }
   .ledger__leader { display: none; }
+
+  /* Decision terms go above their text, so a long term can't squeeze it */
+  .callout dl { grid-template-columns: 1fr; gap: 2px; }
+  .callout dd + dt { margin-top: 10px; }
 }
 
 /* Wide but short screens, such as laptops at 125–150% display scaling: the

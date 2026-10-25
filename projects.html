@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/project-filter.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -43,10 +44,10 @@
           Open a card to read the full write-up.
         </p>
         <!-- EDIT: update the count when you add a project -->
-        <p class="page-head__stats rise" style="--i:2">
-          <span>entries <b>01</b></span>
+        <!-- <p class="page-head__stats rise" style="--i:2">
+          <span>entries <b>08</b></span>
           <span>updated <b>2026-10</b></span>
-        </p>
+        </p> -->
       </header>
 
       <section class="section section--tight" aria-label="Project list">
@@ -56,35 +57,156 @@
           2. Copy the card below (everything from <article class="card"> to </article>),
              paste it at the TOP of the list so the newest project comes first, and edit it.
           Cards are numbered P-01, P-02 … automatically in the order they appear.
+          Real cards use class="card rise" with style="--i:4", "--i:5" and "--i:6" for the first
+          three, so the first row fades in one by one; every later card uses --i:6.
 
           CARD TEMPLATE
-          <article class="card">
-            <div class="card__thumb">
-              <img src="projects/your-slug/images/cover.svg" alt="" loading="lazy" width="1200" height="675">
-            </div>
+          <article class="card" data-area="software-systems">
             <div class="card__body">
-              <p class="card__meta"><span>2026</span><span class="status status--done">complete</span></p>
+              <p class="card__meta"></p>
               <h2 class="card__title"><a class="card__link" href="projects/your-slug/index.html">Project title</a></h2>
               <p class="card__desc">One or two sentences: what it is and why it is interesting.</p>
               <ul class="chips" aria-label="Tech stack">
                 <li class="key">Main tech</li><li>Tech</li><li>Tech</li>
               </ul>
-              <p class="card__foot"><span>category · category</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+              <p class="card__foot"><span class="area">software systems</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
             </div>
           </article>
 
-          Status options: status--done (complete), status--wip (in progress), status--archived (archived).
-          The thumbnail is optional: delete the whole <div class="card__thumb"> if you have no image.
+          Area: set data-area to one id and write the matching name in the footer.
+            data-area="ai"                 ai
+            data-area="data-engineering"   data engineering
+            data-area="software-systems"   software systems
+            data-area="research"           research
+            data-area="other"              other
+          The filter above the list counts the cards in each area by itself.
         -->
+
+        <div class="filters rise" style="--i:3" hidden>
+          <p class="filters__label" id="area-filter">area</p>
+          <div class="filters__opts" role="group" aria-labelledby="area-filter">
+            <button class="filter" type="button" data-area="all" aria-pressed="true">all <span class="filter__n"></span></button>
+            <button class="filter area" type="button" data-area="ai" aria-pressed="false">artificial intelligence <span class="filter__n"></span></button>
+            <button class="filter area" type="button" data-area="data-engineering" aria-pressed="false">data engineering <span class="filter__n"></span></button>
+            <button class="filter area" type="button" data-area="software-systems" aria-pressed="false">software systems <span class="filter__n"></span></button>
+            <button class="filter area" type="button" data-area="research" aria-pressed="false">research <span class="filter__n"></span></button>
+            <button class="filter area" type="button" data-area="other" aria-pressed="false">other <span class="filter__n"></span></button>
+          </div>
+        </div>
+        <p class="filters-status" aria-live="polite" hidden></p>
 
         <div class="cards">
 
-          <article class="card rise" style="--i:3">
-            <div class="card__thumb">
-              <img src="projects/screen-shield/images/cover.svg" alt="" loading="lazy" width="1200" height="675">
-            </div>
+          <article class="card rise" style="--i:4" data-area="research">
             <div class="card__body">
-              <p class="card__meta"><span>2026</span><span class="status status--wip">in progress</span></p>
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/bsgft/index.html">BSGFT — Securing Vehicular Network Topology Against Rational Attackers</a></h2>
+              <p class="card__desc">
+                A zero-trust defence against link discovery attacks in vehicular edge networks, combining a
+                Bayesian Stackelberg game, a federated GAN, four smart contracts and post-quantum signatures.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">NS-3</li><li class="key">Hyperledger Fabric</li><li class="key">PyTorch</li><li>SUMO</li><li>Go</li><li>Game theory</li>
+              </ul>
+              <p class="card__foot"><span class="area">research</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:5" data-area="ai">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/truthbomb/index.html">TruthBomb</a></h2>
+              <p class="card__desc">
+                A fact-checker for code-mixed Sri Lankan social media. A local fine-tuned model reads
+                the post, and rules rather than prompts decide the verdict, so every answer can be traced.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">LangGraph</li><li class="key">Phi-3.5 GGUF</li><li>ChromaDB</li><li>Gemini</li><li>FastAPI</li><li>React</li>
+              </ul>
+              <p class="card__foot"><span class="area">ai</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="software-systems">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/clouds-auction-platform/index.html">Cloud Auction Platform</a></h2>
+              <p class="card__desc">
+                An auction platform rebuilt as real-time NestJS microservices after a review of v1 found 26 issues,
+                including a race that accepted conflicting bids. It runs from one command, on a laptop or the AWS free tier, at no cost.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">NestJS</li><li class="key">RabbitMQ</li><li class="key">PostgreSQL</li><li>React</li><li>Redis</li><li>AWS</li>
+              </ul>
+              <p class="card__foot"><span class="area">software systems</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="software-systems">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/log-witness/index.html">LogWitness</a></h2>
+              <p class="card__desc">
+                Tamper-evident audit logs anchored on Ethereum. Only Merkle roots go on-chain,
+                and a verifier can name the exact line an attacker changed.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">Blockchain</li><li class="key">Solidity</li><li class="key">Go</li><li>Ethereum</li><li>Foundry</li>
+              </ul>
+              <p class="card__foot"><span class="area">software systems</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="software-systems">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/n-body-simulator/index.html">Parallel N-Body Simulator</a></h2>
+              <p class="card__desc">
+                One gravity simulation, four parallel backends (serial, OpenMP, MPI, CUDA),
+                and an architecture built so the speedups between them stay honest.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">OpenMP</li><li class="key">MPI</li><li class="key">CUDA</li><li>C11</li><li>Docker</li><li>OpenGL</li>
+              </ul>
+              <p class="card__foot"><span class="area">software systems</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="ai">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/leather-defect-detection/index.html">Leather Defect Detection</a></h2>
+              <p class="card__desc">
+                Live leather inspection: an Attention U-Net labels five defect types pixel by pixel,
+                and a PyQt5 app turns that into area measurements and a pass/fail verdict.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">TensorFlow</li><li class="key">PyQt5</li><li>OpenCV</li><li>U-Net</li>
+              </ul>
+              <p class="card__foot"><span class="area">ai</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="data-engineering">
+            <div class="card__body">
+              <p class="card__meta"></p>
+              <h2 class="card__title"><a class="card__link" href="projects/voltstream/index.html">Voltstream</a></h2>
+              <p class="card__desc">
+                A streaming and batch data platform for a simulated smart grid: live zone monitoring
+                about 6 seconds behind the meters, and exact daily bills that can be re-run from the
+                raw data at any time.
+              </p>
+              <ul class="chips" aria-label="Tech stack">
+                <li class="key">Kafka</li><li class="key">Spark</li><li class="key">Airflow</li>
+                <li>PostgreSQL</li><li>FastAPI</li><li>Grafana</li>
+              </ul>
+              <p class="card__foot"><span class="area">data engineering</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+            </div>
+          </article>
+
+          <article class="card rise" style="--i:6" data-area="software-systems">
+            <div class="card__body">
+              <p class="card__meta"></p>
               <h2 class="card__title"><a class="card__link" href="projects/screen-shield/index.html">Screen-Shield</a></h2>
               <p class="card__desc">
                 A bilingual (Sinhala / English) screen-time and digital-wellbeing app for Sri Lankan families,
@@ -94,13 +216,13 @@
                 <li class="key">React Native</li><li class="key">Node.js</li><li>Expo</li><li>TypeScript</li>
                 <li>PostgreSQL</li><li>MongoDB</li><li>Docker</li>
               </ul>
-              <p class="card__foot"><span>mobile · backend</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
+              <p class="card__foot"><span class="area">software systems</span><span class="card__cta">case study <span class="arrow" aria-hidden="true">→</span></span></p>
             </div>
           </article>
 
-          <!-- Placeholder slot. Delete this block once you have a second project. -->
-          <div class="card card--ghost rise" style="--i:4" aria-hidden="true">
-            <p><strong>Next case study</strong>being written up</p>
+          <!-- Shown by the filter when an area has no projects. Keep it last. -->
+          <div class="card card--ghost card--empty rise" hidden>
+            <p><strong>Nothing here yet</strong>case studies in this area are on the way</p>
           </div>
 
         </div>
@@ -115,8 +237,8 @@
         <p>© 2026 Maleesha Fonseka</p>
         <ul class="footer-links">
           <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
-          <li><a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">linkedin</a></li>
-          <li><a href="mailto:your.email@example.com">email</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
         </ul>
       </div>
     </div>

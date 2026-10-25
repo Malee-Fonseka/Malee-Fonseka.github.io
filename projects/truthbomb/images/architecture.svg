@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 530" width="960" height="530" font-family="'Fira Code', Consolas, Menlo, monospace">
+  <title>TruthBomb architecture: one request, end to end</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#b3bbc1"/>
+    </marker>
+  </defs>
+  <rect width="960" height="530" fill="#0d1011"/>
+  <text x="24" y="30" font-size="12" fill="#788187" letter-spacing="2">TRUTHBOMB · ONE REQUEST, END TO END</text>
+
+  <!-- legend -->
+  <rect x="650" y="52" width="14" height="14" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="672" y="63" font-size="11" fill="#b3bbc1">local GPU · fine-tuned Phi-3.5</text>
+  <rect x="650" y="74" width="14" height="14" fill="#241d10" stroke="#c49a4a"/>
+  <text x="672" y="85" font-size="11" fill="#b3bbc1">Gemini API (cloud)</text>
+  <rect x="650" y="96" width="14" height="14" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="672" y="107" font-size="11" fill="#b3bbc1">plain code, no model</text>
+
+  <!-- client and API -->
+  <rect x="35" y="46" width="250" height="68" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="160" y="71" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">browser</text>
+  <text x="160" y="89" text-anchor="middle" font-size="11" fill="#788187">paste text or upload a screenshot</text>
+  <text x="160" y="104" text-anchor="middle" font-size="11" fill="#788187">OCR in-browser: en · si · ta</text>
+
+  <rect x="355" y="46" width="250" height="68" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="480" y="71" text-anchor="middle" font-size="15" font-weight="600" fill="#e7ebed">FastAPI</text>
+  <text x="480" y="89" text-anchor="middle" font-size="11" fill="#788187">POST /api/v1/verify</text>
+  <text x="480" y="104" text-anchor="middle" font-size="11" fill="#788187">thin layer over the graph</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none">
+    <line x1="285" y1="70" x2="353" y2="70" marker-end="url(#arrow)"/>
+    <line x1="355" y1="92" x2="287" y2="92" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+    <!-- request into the graph, response out of it -->
+    <path d="M400 114V136H99V250" marker-end="url(#arrow)"/>
+    <path d="M864 252V136H560V116" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  </g>
+  <text x="250" y="130" text-anchor="middle" font-size="10.5" fill="#788187">post text</text>
+  <text x="712" y="130" text-anchor="middle" font-size="10.5" fill="#788187">verdict · EN/SI/TA · audit trail</text>
+
+  <!-- graph container -->
+  <rect x="20" y="156" width="920" height="244" fill="none" stroke="#b3bbc1" stroke-opacity=".35" stroke-dasharray="4 4"/>
+  <text x="924" y="392" text-anchor="end" font-size="10.5" fill="#788187" letter-spacing="1.5">LANGGRAPH STATE GRAPH</text>
+
+  <!-- extract -->
+  <rect x="35" y="252" width="128" height="76" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="99" y="279" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">extract</text>
+  <text x="99" y="297" text-anchor="middle" font-size="10.5" fill="#b3bbc1">claim + language</text>
+  <text x="99" y="312" text-anchor="middle" font-size="10.5" fill="#b3bbc1">grammar → JSON</text>
+
+  <!-- retrieve -->
+  <rect x="188" y="252" width="128" height="76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="252" y="279" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">retrieve</text>
+  <text x="252" y="297" text-anchor="middle" font-size="10.5" fill="#b3bbc1">dense + BM25</text>
+  <text x="252" y="312" text-anchor="middle" font-size="10.5" fill="#b3bbc1">RRF·tier·recency</text>
+
+  <!-- route -->
+  <path d="M405 248L457 290L405 332L353 290Z" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="405" y="288" text-anchor="middle" font-size="13" font-weight="600" fill="#e7ebed">score</text>
+  <text x="405" y="304" text-anchor="middle" font-size="11" fill="#b3bbc1">≥ 0.4 ?</text>
+
+  <!-- verifiers -->
+  <rect x="494" y="196" width="128" height="64" fill="#0f2523" stroke="#3d9f96"/>
+  <text x="558" y="222" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">verify: local</text>
+  <text x="558" y="241" text-anchor="middle" font-size="10.5" fill="#b3bbc1">Phi-3 · stance</text>
+
+  <rect x="494" y="320" width="128" height="64" fill="#241d10" stroke="#c49a4a"/>
+  <text x="558" y="346" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">verify: web</text>
+  <text x="558" y="365" text-anchor="middle" font-size="10.5" fill="#b3bbc1">Gemini · stance</text>
+
+  <!-- adjudicate -->
+  <rect x="647" y="252" width="128" height="76" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="711" y="279" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">adjudicate</text>
+  <text x="711" y="297" text-anchor="middle" font-size="10.5" fill="#b3bbc1">rules first</text>
+  <text x="711" y="312" text-anchor="middle" font-size="10.5" fill="#b3bbc1">Gemini if unclear</text>
+
+  <!-- translate -->
+  <rect x="800" y="252" width="128" height="76" fill="#241d10" stroke="#c49a4a"/>
+  <text x="864" y="279" text-anchor="middle" font-size="14" font-weight="600" fill="#e7ebed">translate</text>
+  <text x="864" y="297" text-anchor="middle" font-size="10.5" fill="#b3bbc1">EN · SI · TA</text>
+  <text x="864" y="312" text-anchor="middle" font-size="10.5" fill="#b3bbc1">best effort</text>
+
+  <!-- graph edges -->
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none">
+    <line x1="163" y1="290" x2="186" y2="290" marker-end="url(#arrow)"/>
+    <line x1="316" y1="290" x2="351" y2="290" marker-end="url(#arrow)"/>
+    <path d="M405 248V228H492" marker-end="url(#arrow)"/>
+    <path d="M405 332V352H492" marker-end="url(#arrow)"/>
+    <path d="M622 228H634V284H645" marker-end="url(#arrow)"/>
+    <path d="M622 352H634V296H645" marker-end="url(#arrow)"/>
+    <line x1="775" y1="290" x2="798" y2="290" marker-end="url(#arrow)"/>
+  </g>
+  <text x="448" y="222" text-anchor="middle" font-size="10.5" fill="#788187">yes · local</text>
+  <text x="448" y="368" text-anchor="middle" font-size="10.5" fill="#788187">no · web</text>
+
+  <!-- evidence sources -->
+  <path d="M157 444v48a95 12 0 0 0 190 0v-48" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <ellipse cx="252" cy="444" rx="95" ry="12" fill="#151a1c" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="252" y="475" text-anchor="middle" font-size="13" font-weight="600" fill="#e7ebed">ChromaDB + BM25</text>
+  <text x="252" y="491" text-anchor="middle" font-size="10.5" fill="#788187">multilingual MiniLM</text>
+
+  <rect x="372" y="438" width="160" height="60" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="452" y="463" text-anchor="middle" font-size="13" font-weight="600" fill="#e7ebed">ingest worker</text>
+  <text x="452" y="481" text-anchor="middle" font-size="10.5" fill="#788187">Telegram · every 60 s</text>
+
+  <rect x="566" y="438" width="200" height="60" fill="#101315" stroke="#b3bbc1" stroke-opacity=".55"/>
+  <text x="666" y="463" text-anchor="middle" font-size="13" font-weight="600" fill="#e7ebed">DuckDuckGo</text>
+  <text x="666" y="481" text-anchor="middle" font-size="10.5" fill="#788187">10 trusted news domains</text>
+
+  <g stroke="#b3bbc1" stroke-opacity=".75" fill="none" stroke-dasharray="4 3">
+    <line x1="252" y1="430" x2="252" y2="331" marker-end="url(#arrow)"/>
+    <line x1="372" y1="468" x2="350" y2="468" marker-end="url(#arrow)"/>
+    <line x1="600" y1="436" x2="600" y2="387" marker-end="url(#arrow)"/>
+  </g>
+</svg>

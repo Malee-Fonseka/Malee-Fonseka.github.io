@@ -44,17 +44,20 @@
               <h1 class="rise" id="about-title">About</h1>
               <!-- EDIT: write this in your own voice -->
               <p class="page-head__lede rise" style="--i:1">
-                I'm Maleesha, an engineering undergraduate at the University of Ruhuna who enjoys
-                turning a vague problem into a system that is clearly reasoned and actually works.
+                I’m Maleesha, a computer engineer who likes to understand software all the way down. 
+                I build systems and the infrastructure they run on, and I enjoy following the whole path a request takes: 
+                through the API, into the database, across the network and onto the machine underneath. 
+                What draws me in is the reasoning behind a system as much as the system itself: 
+                why a boundary sits where it does, what a design quietly trades away, and how it behaves when load, latency or bad data push against it. 
+                That curiosity keeps pulling me toward performance, networking and security, and more recently toward the infrastructure that serves large AI models. 
+                I treat engineering as a craft worth doing carefully, with clear interfaces, honest measurements and documentation someone else can actually follow. 
+                
               </p>
               <p class="rise" style="--i:2">
-                Most of my recent work sits where mobile development meets backend architecture:
-                designing service boundaries, writing API contracts, and building clients that hold up
-                when the network or the data does not behave. I care about documentation as much as code,
-                which is why every project here has a full write-up.
+                This site is where I think out loud about that work: how things are built, why they hold up, and what I learn when they don’t.
               </p>
               <p class="rise" style="--i:3">
-                Outside coursework I <!-- EDIT --> like to … (a line about interests, communities or what you are learning next).
+                When I’m not building, I’m usually reading about Linux internals, compilers or networking, or taking something apart to see how it works.
               </p>
             </div>
 
@@ -77,7 +80,7 @@
 
         <section class="section section--tight" aria-labelledby="edu-title">
           <header class="sec-head">
-            <div class="sec-head__meta"><span class="sec-head__tag">education</span><span>2 records</span></div>
+            <div class="sec-head__meta"><span class="sec-head__tag">education</span></div>
             <h2 id="edu-title">Education</h2>
           </header>
 
@@ -85,27 +88,21 @@
           <ol class="timeline">
             <li class="tl-item is-current">
               <!-- EDIT: confirm your intake year and degree title -->
-              <p class="tl-when">2021 — present</p>
+              <p class="tl-when">2022 — 2026</p>
               <div class="tl-body">
-                <h3>BSc Engineering (Hons)</h3>
+                <h3>B.Sc. Engineering (Hons) in Computer Engineering</h3>
                 <p class="tl-where">University of Ruhuna · Faculty of Engineering</p>
                 <p>
-                  Department of Electrical and Information Engineering. Coursework includes software
-                  architecture (EC8208), where my team designed and is prototyping Screen-Shield.
+                  Computer Engineering specialisation in the Department of Electrical and Information Engineering. 
+                  The programme runs the full depth of computing: 
+                  from digital logic and computer architecture up through operating systems, networks and distributed software, 
+                  which is where my habit of thinking about software from the hardware up comes from.
                 </p>
                 <ul class="tl-points">
-                  <li>Relevant modules: Software Architecture (EC8208), <!-- EDIT: add more --> …</li>
-                  <li>Final-year project: <!-- EDIT --> title and one-line summary</li>
+                  <li>Software & systems: Operating Systems, Computer Networks, Software Architecture, Cloud Computing, High Performance Computing, Advanced Algorithms</li>
+                  <li>Security & AI: Information Security, Cybersecurity and Blockchain, Advanced Artificial Intelligence, Computer Vision and Image Processing</li>
+                  <li>Hardware: Computer Architecture, Digital Logic Design, Embedded System Design, Integrated Circuit Design</li>
                 </ul>
-              </div>
-            </li>
-
-            <li class="tl-item">
-              <p class="tl-when"><!-- EDIT -->20XX — 20XX</p>
-              <div class="tl-body">
-                <h3>G.C.E. Advanced Level · Physical Science</h3>
-                <p class="tl-where"><!-- EDIT -->School name, City</p>
-                <p><!-- EDIT -->Results, stream, or any distinction worth mentioning.</p>
               </div>
             </li>
           </ol>
@@ -113,25 +110,25 @@
 
         <section class="section section--tight" aria-labelledby="exp-title">
           <header class="sec-head">
-            <div class="sec-head__meta"><span class="sec-head__tag">experience</span><span>industry</span></div>
-            <h2 id="exp-title">Industry experience</h2>
+            <div class="sec-head__meta"><span class="sec-head__tag">experience</span></div>
+            <h2 id="exp-title">Industry Experience</h2>
           </header>
 
           <!-- EDIT: one <li class="tl-item"> per role, most recent first -->
           <ol class="timeline">
             <li class="tl-item">
-              <p class="tl-when">Mon YYYY — Mon YYYY</p>
+              <p class="tl-when">May 2025 — Nov 2025</p>
               <div class="tl-body">
-                <h3>Software Engineering Intern</h3>
-                <p class="tl-where">Company name · City</p>
-                <p>One sentence on the team, the product, and where you fitted in.</p>
+                <h3>Software Development Engineer in Test</h3>
+                <p class="tl-where">Xeptagon (Pvt) Ltd | Colombo, Sri Lanka</p>
+                <p>Worked on the engineering team behind two production web products, Domain Lookup and Auto-backorder, contributing across backend features, test automation and release documentation.</p>
                 <ul class="tl-points">
-                  <li>What you built, and the technology you built it with.</li>
-                  <li>A measurable result: performance gained, time saved, users reached.</li>
-                  <li>Something you owned end to end, or a practice you introduced.</li>
+                  <li>Built a concurrent-session limiting feature in NestJS using guards and JWT validation, resolved authorization defects, and refactored the session and authentication modules without breaking dependent modules.</li>
+                  <li>Implemented audit logging across two modules, giving the team full traceability of user actions, and refactored the logic for readability before handover.</li>
+                  <li>Designed an end-to-end API regression suite with Postman/Newman against a Dockerised PostgreSQL environment, covering submissions, scheduled jobs and bot workflows; the QA team adopted it as a standard testing tool.</li>
                 </ul>
                 <ul class="chips" aria-label="Technologies used">
-                  <li class="key">Primary tech</li><li>Tech</li><li>Tech</li>
+                  <li class="key">NestJS</li><li>TypeScript</li><li>JWT</li><li>PostgreSQL</li><li>Docker</li><li>Postman / Newman</li>
                 </ul>
               </div>
             </li>
@@ -140,7 +137,7 @@
 
         <section class="section section--tight" aria-labelledby="skills-title">
           <header class="sec-head">
-            <div class="sec-head__meta"><span class="sec-head__tag">skills</span><span>technical</span></div>
+            <div class="sec-head__meta"><span class="sec-head__tag">skills</span></div>
             <h2 id="skills-title">Technical skills</h2>
             <p>Tools I have used in real projects. Highlighted entries are the ones I reach for first.</p>
           </header>
@@ -148,39 +145,70 @@
           <!-- EDIT: add, remove or regroup freely. class="key" highlights a chip. -->
           <div class="skills">
             <section class="skill-group">
-              <h3>languages</h3>
+              <h3>Languages</h3>
               <ul class="chips">
-                <li class="key">TypeScript</li><li class="key">JavaScript</li><li>SQL</li>
+                <li class="key">C/C++</li>
+                <li class="key">TypeScript</li>
+                <li>Python</li>
+                <li>SQL</li>
+                <li>Bash</li>
+                <li>Haskell</li>
               </ul>
             </section>
             <section class="skill-group">
-              <h3>mobile &amp; frontend</h3>
+              <h3>Backend</h3>
               <ul class="chips">
-                <li class="key">React Native</li><li>Expo Router</li><li>TanStack Query</li><li>Zustand</li><li>i18next</li><li>HTML / CSS</li>
+                <li class="key">Nest.Js</li>
+                <li>Node.Js</li>
+                <li>Fast API</li>
+                <li>Kafka</li>
+                <li>RabbitMQ</li>
+                <li>JWT Authentication</li>
               </ul>
             </section>
             <section class="skill-group">
-              <h3>backend</h3>
+              <h3>Frontend</h3>
               <ul class="chips">
-                <li class="key">Node.js</li><li class="key">Express</li><li>REST API design</li><li>JWT auth</li><li>Joi</li>
+                <li class="key">React</li>
+                <li>Next.js</li>
+                <li>HTML / CSS</li>
               </ul>
             </section>
             <section class="skill-group">
-              <h3>data</h3>
+              <h3>Data</h3>
               <ul class="chips">
-                <li class="key">PostgreSQL</li><li>MongoDB</li><li>Mongoose</li>
+                <li class="key">PostgreSQL</li>
+                <li>Redis</li>
+                <li>MongoDB</li>
               </ul>
             </section>
             <section class="skill-group">
-              <h3>infrastructure</h3>
+              <h3>Infrastructure</h3>
               <ul class="chips">
-                <li class="key">Docker</li><li>Docker Compose</li><li>Git &amp; GitHub</li>
+                <li class="key">Docker</li>
+                <li class="key">Linux</li>
+                <li>AWS</li>
+                <li>Docker Compose</li>
+                <li>Git &amp; GitHub</li>
               </ul>
             </section>
             <section class="skill-group">
-              <h3>practices</h3>
+              <h3>Other Tools</h3>
               <ul class="chips">
-                <li class="key">Microservices</li><li>Architecture decision records</li><li>UML</li><li>Unit testing (Jest)</li>
+                <li class="key">CUDA</li>
+                <li class="key">PyTorch</li>
+                <li>Postman</li>
+                <li>MPI</li>
+              </ul>
+            </section>
+            <section class="skill-group">
+              <h3>Practices</h3>
+              <ul class="chips">
+                <li>REST API Design</li>
+                <li>Parallel Programing</li>
+                <li>Microservices</li>
+                <li>Event Driven Architecture</li>
+                <li>Unit &amp; End-to-End Testing</li>
               </ul>
             </section>
           </div>
@@ -236,8 +264,8 @@
         <p>© 2026 Maleesha Fonseka</p>
         <ul class="footer-links">
           <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
-          <li><a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">linkedin</a></li>
-          <li><a href="mailto:your.email@example.com">email</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
         </ul>
       </div>
     </div>

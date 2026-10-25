@@ -1,0 +1,837 @@
+<!doctype html>
+<!-- Generated from _case-study.md. Edit the Markdown and regenerate; changes made here are overwritten. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BSGFT — Securing Vehicular Network Topology Against Rational Attackers · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: A blockchain, game-theory and federated-GAN defence framework that protects the SDN controller's topology view in software-defined vehicular edge networks from link discovery attacks.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="BSGFT — Securing Vehicular Network Topology Against Rational Attackers · case study">
+  <meta property="og:description" content="A blockchain, game-theory and federated-GAN defence framework that protects the SDN controller's topology view in software-defined vehicular edge networks from link discovery attacks.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <a class="cs-back" href="../../projects.html">← all projects</a>
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">bsgft</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · Final-year research project, University of Ruhuna</p>
+        <h1 class="rise" style="--i:1">BSGFT — Securing Vehicular Network Topology Against Rational Attackers</h1>
+        <p class="cs-lede rise" style="--i:2">
+          BSGFT is a zero-trust defence framework for Software-Defined Vehicular Edge Networks (SD-VENs),
+          where the SDN controller builds its map of the network from unauthenticated LLDP discovery packets.
+          It treats attackers as a rational coalition rather than random noise: the controller commits to a
+          game-theoretic monitoring policy on a permissioned blockchain, RSU-hosted GAN generators play the
+          attacker's evasion strategy against vehicle-hosted discriminators, and post-quantum signatures,
+          reputation consensus and controller failover close the remaining trust gaps. The full system was
+          built and evaluated in NS-3 with SUMO mobility traces over a live Hyperledger Fabric network.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">NS-3</li><li class="key">Hyperledger Fabric</li><li class="key">PyTorch</li><li class="key">SUMO</li>
+          <li>Go chaincode</li><li>C++</li><li>Python</li><li>liboqs FALCON-1024</li><li>Kyber-1024</li><li>IPFS</li>
+          <li>OpenStreetMap</li><li>Game theory</li><li>Federated learning</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#objectives">Research objectives</a></li>
+              <li><a href="#threat-model">Threat model</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#methodology">Methodology</a></li>
+              <li><a href="#evaluation">Evaluation setup</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#limitations">Limitations</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              Modern intelligent transport systems are moving control logic out of the cloud and onto the road edge.
+              In a <strong>Software-Defined Vehicular Edge Network (SD-VEN)</strong>, Road Side Units (RSUs) host edge
+              servers, vehicles connect to them over DSRC, and a central SDN controller decides how every packet is
+              routed. That controller is only as good as its map of the network — and it builds that map from
+              <strong>LLDP link discovery packets that are neither authenticated nor integrity-protected</strong>.
+            </p>
+            <p>
+              BSGFT (<em>Blockchain-based Stackelberg Game-theoretic Federated AI agent with Threshold signatures</em>)
+              is our final-year research project: a defence framework that makes topology discovery zero-trust across
+              all three layers of an SD-VEN — infrastructure-to-infrastructure (I2I), vehicle-to-infrastructure (V2I)
+              and vehicle-to-vehicle (V2V). Its defining idea is to stop treating the attacker as a static threat.
+              BSGFT models compromised vehicles and RSUs as a <strong>rational coalition</strong> that watches the
+              defence and optimises against it, and then designs the defence around that model.
+            </p>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">~10⁴×</span><span class="metrics__label">larger attack surface in SD-VENs than in static SDN, derived from the mobility amplification model</span></li>
+              <li><span class="metrics__val">0.983</span><span class="metrics__label">MCC for hybrid detection with the Stackelberg policy under a rational coalition (diagnostic run, 60% penetration)</span></li>
+              <li><span class="metrics__val">157 / 157</span><span class="metrics__label">on-chain federated-GAN rounds completed with zero collapse rollbacks</span></li>
+              <li><span class="metrics__val">80.7%</span><span class="metrics__label">tightening of the defender's estimate of the attacker's budget within 12 s of play</span></li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">project context</p>
+              <p>
+                Group 61 final-year project (four engineers), Department of Electrical and Information Engineering,
+                Faculty of Engineering, University of Ruhuna, supervised by Dr. P.A.D.S.N. Wijesekara. The scope is
+                simulation-based: every mechanism is designed, implemented and validated in NS-3, with no hardware
+                deployment.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+
+            <h3>Why topology discovery is the weak point</h3>
+            <p>
+              In an SD-VEN the controller accepts every LLDP packet it receives and writes the link it describes
+              straight into its topology database. An attacker who can inject, alter or replay these packets can make
+              the controller believe in links that do not exist, or forget links that do. The consequence is
+              <strong>topology poisoning</strong>: the controller installs forwarding rules for a network that is not
+              physically there. Prior work on SDN-enabled vehicular networks reports blackhole routing causing
+              connectivity losses as high as 79%.
+            </p>
+            <p>
+              In a vehicular network this is a safety problem, not just an availability problem. Misrouted safety
+              messages, broken cooperative-driving sessions and autonomous navigation decisions made on a false map all
+              put passengers at risk.
+            </p>
+
+            <h3>Why vehicles make it worse</h3>
+            <p>Discovery in an SD-VEN runs as three parallel mechanisms, each one a separate attack surface:</p>
+            <ul>
+              <li><strong>I2I (wired backbone):</strong> the controller probes RSUs with LLDP inside OpenFlow Packet-Out messages and correlates the Packet-In replies. Links are stable, so probing pauses once the backbone is mapped.</li>
+              <li><strong>I2V (access layer):</strong> an RSU wraps LLDP in a wireless frame, the vehicle mirrors it back, and the RSU forwards it to the controller as proof of attachment.</li>
+              <li><strong>V2V (dynamic edge):</strong> a vehicle cooperatively rebroadcasts an LLDP frame, neighbours that overhear it report back through their RSUs, and the controller infers a peer-to-peer link.</li>
+            </ul>
+            <p>
+              All three run on an <em>open trust</em> model. A single compromised RSU is especially dangerous because it
+              is both a traffic hub and the controller's "eyes" at the edge — whatever it reports upstream becomes the
+              controller's truth.
+            </p>
+            <p>
+              Mobility amplifies everything. Every link expiry triggers a fresh discovery cycle, so the number of
+              discovery exchanges — and therefore attack opportunities — scales with vehicle speed and inversely with
+              radio range. Worse, a vehicle legitimately driving out of range looks exactly like an attacker erasing a
+              link, so any fixed detection threshold misses more attacks as the network churns.
+            </p>
+
+            <h3>Measured impact without a defence</h3>
+            <p>Before building any mitigation, we ran each attack against the unprotected open-trust discovery process in NS-3:</p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">Attack</th><th scope="col">0% malicious</th><th scope="col">25%</th><th scope="col">50%</th><th scope="col">75%</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Link fabrication — Topology Integrity Ratio</td><td>1.00</td><td>0.93</td><td>0.86</td><td>0.79</td></tr>
+                  <tr><td>MiTM / replay — Topology Integrity Ratio</td><td>1.00</td><td>0.93</td><td>0.86</td><td>0.79</td></tr>
+                  <tr><td>Flooding — Link Discovery Latency</td><td>5.000 ms</td><td>—</td><td>—</td><td>5.013 ms</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Topology integrity falls linearly with attacker penetration: every compromised node contributes a
+              proportional volume of forged or replayed links that the controller accepts unconditionally. Replayed
+              frames poison the map exactly as effectively as freshly fabricated ones. Flooding barely moves latency in
+              this setting; its damage shows up in throughput and topology accuracy instead.
+            </p>
+
+            <h3>Why existing defences fall short</h3>
+            <p>
+              A systematic review of twelve link discovery defences — from TopoGuard and its successors to ML-based
+              verifiers and the most comprehensive prior work, BQLLDA (blockchain + Q-learning + post-quantum crypto in
+              a flat SDVN) — exposed five gaps:
+            </p>
+            <ul>
+              <li><strong>G1 — No mobility model.</strong> SDN defences assume quasi-static links; none quantifies how link churn scales the attack surface.</li>
+              <li><strong>G2 — V2V and V2I ignored.</strong> No defence protects discovery on the two most volatile layers of the topology.</li>
+              <li><strong>G3 — No rational attacker.</strong> Every defence is reactive and models attackers as static or independent. None models a coalition that jointly chooses attack class, target, timing and intensity in response to the defence — which is exactly how a Q-learning defence can be kept permanently non-converged.</li>
+              <li><strong>G4 — Centralised detection.</strong> ML defences collect raw traffic centrally, exposing topology data and creating a single poisoning target.</li>
+              <li><strong>G5 — No threshold post-quantum crypto.</strong> The only post-quantum LDA defence signs per node, so one compromised RSU can still forge valid updates; and no work offers a lightweight mode with quantified trade-offs.</li>
+            </ul>
+            <p>
+              Most of these defences also assume a <strong>trusted controller</strong> — leaving the highest-value target
+              in the network entirely unverified.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Capability</th><th scope="col">TopoGuard</th><th scope="col">LINK-GUARD</th><th scope="col">RLV</th><th scope="col">Wang et al.</th><th scope="col">BQLLDA</th><th scope="col"><strong>BSGFT</strong></th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Vehicular mobility modelled</td><td>✗</td><td>✗</td><td>✗</td><td>partial</td><td>partial</td><td><strong>✓</strong></td></tr>
+                  <tr><td>V2V link integrity</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td><strong>✓</strong></td></tr>
+                  <tr><td>Malicious controller</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✓</td><td><strong>✓</strong></td></tr>
+                  <tr><td>Blockchain trust</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✓</td><td><strong>✓</strong></td></tr>
+                  <tr><td>Game-theoretic defence</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td><strong>✓</strong></td></tr>
+                  <tr><td>Post-quantum crypto</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>per-node</td><td><strong>threshold</strong></td></tr>
+                  <tr><td>Federated learning</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td>✗</td><td><strong>✓ (GAN)</strong></td></tr>
+                  <tr><td>Dual deployment mode</td><td>✗</td><td>✗</td><td>partial</td><td>✗</td><td>✓</td><td><strong>✓</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 03 OBJECTIVES ============ -->
+          <section class="cs-sec" id="objectives">
+            <h2>Research objectives</h2>
+            <p>The project set three objectives:</p>
+            <ol>
+              <li><strong>Model the threat.</strong> Build comprehensive threat scenarios for LLDP-based discovery across V2V, V2I and I2I, including compromised controllers.</li>
+              <li><strong>Design the defence.</strong> Develop a blockchain-based, game-theoretic, federated AI framework with GAN-based adversarial traffic synthesis that hinders link discovery attacks from intelligent adversaries.</li>
+              <li><strong>Evaluate it.</strong> Simulate the framework in NS-3 and compare it against existing SD-VEN defences on attack resistance, adaptability and robustness.</li>
+            </ol>
+            <p>These broke down into seven research questions, each tied to a specific experiment:</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col"></th><th scope="col">Question</th><th scope="col">Evaluated by</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>RQ1</td><td>Does the mobility amplification model predict how link churn inflates attack rate and miss probability, and does mobility-aware detection hold up at highway speeds?</td><td>E2 — speed sweep</td></tr>
+                  <tr><td>RQ2</td><td>Does the Perfect Bayesian Equilibrium policy keep detection quality and resilience against a rational coalition better than uniform monitoring and Q-learning?</td><td>E1, E4 — penetration and attacker-rationality sweeps</td></tr>
+                  <tr><td>RQ3</td><td>Does the federated GAN catch hybrid and zero-day patterns that rule-based and centrally trained detectors miss?</td><td>E1, E5, ablations</td></tr>
+                  <tr><td>RQ4</td><td>Can the (t, n) FALCON-1024 threshold scheme tolerate t−1 compromised signers while keeping discovery latency under 100 ms?</td><td>Cryptographic quorum ablation</td></tr>
+                  <tr><td>RQ5</td><td>Does the lightweight mode cut computational cost by ≥70% while keeping MCC above 0.88 and false positives below 10%?</td><td>E1–E3</td></tr>
+                  <tr><td>RQ6</td><td>Does overhead scale sub-linearly with fleet size, and does LKH re-keying scale as O(log N)?</td><td>E3, key-management ablation</td></tr>
+                  <tr><td>RQ7</td><td>Does class-aware monitoring stay stable when the coalition concentrates on its best attack class, and do the game policy and GAN converge jointly?</td><td>E5 — coalition class composition</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 04 THREAT MODEL ============ -->
+          <section class="cs-sec" id="threat-model">
+            <h2>Threat model</h2>
+            <p>
+              The adversary is defined in two layers: <strong>capability axioms</strong> (what the attacker can do) and
+              <strong>behavioural axioms</strong> (how a rational coalition uses those capabilities). Each behavioural
+              axiom maps directly to a defence component, which is what keeps the architecture from being a pile of
+              unrelated mechanisms.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Axiom</th><th scope="col">Definition</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>C1 Node compromise</td><td>Insider vehicles and RSUs holding valid credentials</td></tr>
+                  <tr><td>C2 Traffic manipulation</td><td>Intercept, modify, inject and replay OpenFlow, LLDP and CAM messages</td></tr>
+                  <tr><td>C3 Tunnelling</td><td>Colluding nodes build out-of-band wormholes between distant segments</td></tr>
+                  <tr><td>C4 Resource exhaustion</td><td>High-rate table-miss floods against controller CPU and memory</td></tr>
+                  <tr><td>C5 Controller compromise</td><td>Some controller instances replay or originate falsified control messages</td></tr>
+                  <tr><td>C6 Coalition formation</td><td>Compromised nodes act as one strategic agent with a pooled resource budget</td></tr>
+                  <tr><td><strong>B1 Strategic rationality</strong></td><td>Reads the defence policy on-chain and jointly optimises timing, target link, attack class, intensity and resource allocation → motivates the <strong>Stackelberg game</strong></td></tr>
+                  <tr><td><strong>B2 Tactical adaptation</strong></td><td>Estimates its own miss rate from public signals and shifts its traffic distribution below the detector's boundary → motivates the <strong>adversarial GAN</strong></td></tr>
+                  <tr><td><strong>B3 Strategic–tactical coupling</strong></td><td>B1 and B2 feed each other through the shared per-class miss probability → motivates <strong>coupled convergence</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Three attack classes are considered on every layer: <strong>link fabrication</strong> (forged chassis IDs
+              creating ghost links), <strong>Packet-In flooding</strong> on the data and control planes (including
+              malicious controllers and RSUs), and <strong>MiTM / replay</strong> (valid packets captured and replayed to
+              fake links that no longer exist).
+            </p>
+
+            <h3>The mobility amplification model</h3>
+            <p>
+              The first contribution is a closed-form model of how mobility inflates the attack surface. With link
+              lifetime τ defined as the time until two nodes drift beyond radio range (≈690 m for DSRC at 5.89 GHz
+              under the COST 231 Hata model), discovery frequency per link is 1/E[τ], and the expected attack rate is
+              the per-exchange success probability multiplied by the network-wide discovery rate.
+            </p>
+            <p>
+              Because the attacker's per-exchange capability cancels out, the ratio of attack rates between an SD-VEN
+              and a static SDN collapses to a ratio of link lifetimes:
+            </p>
+            <p><strong>Φ<sub>mob</sub> = E[τ<sub>SDN</sub>] / E[τ<sub>SD-VEN</sub>] ∝ (v̄ / R<sub>max</sub>) · E[τ<sub>SDN</sub>]</strong></p>
+            <p>
+              With wired links lasting on the order of 10⁵ s and vehicular links on the order of 10 s,
+              Φ<sub>mob</sub> is around <strong>10⁴</strong> — the SD-VEN presents an attack surface four orders of
+              magnitude larger than static SDN.
+            </p>
+            <p>
+              A second result captures the detection ambiguity: the false-negative probability of any static threshold
+              becomes the static-SDN miss rate <em>plus</em> a term that grows linearly with the topology change rate.
+              That single equation drove three design choices — retrain the discriminator at a cadence tied to churn,
+              scale monitoring effort with the discovery rate, and adapt discovery timing so the coalition cannot
+              predict its injection windows.
+            </p>
+          </section>
+
+          <!-- ============ 05 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              BSGFT separates <strong>detection</strong> from <strong>mitigation</strong> and orders its defences so that
+              cheap, certain checks run before expensive, probabilistic ones.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/bsgft-three-layer-architecture.png" target="_blank" rel="noopener">
+                <img src="images/bsgft-three-layer-architecture.png" alt="The BSGFT three-layer defence architecture, showing pre-authentication, detection and mitigation layers between the data plane and the controller" width="2400" height="1935" loading="lazy">
+              </a>
+              <figcaption>The three-layer defence. Cryptography removes forged and replayed packets before any model runs; reputation and failover act asynchronously so they never stall discovery.</figcaption>
+            </figure>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Pre-authentication</strong><span>FALCON-1024 threshold signature and time-limited session HMAC on every LLDP exchange; forged or expired packets are dropped</span></li>
+                  <li class="flow__node flow__node--key"><strong>Detection</strong><span>Stackelberg-scheduled scoring of a 7-feature vector by the federated GAN discriminator (or the rule-based scorer in lightweight mode)</span></li>
+                  <li class="flow__node"><strong>Mitigation</strong><span>REPC reputation updates and blacklisting, CTEF controller trust scoring and failover, run between discovery cycles</span></li>
+                  <li class="flow__node"><strong>Zero-trust commit</strong><span>Every controller topology proposal needs a two-thirds weighted RSU endorsement before it enters the global view</span></li>
+                </ol>
+              </div>
+              <figcaption>The per-cycle pipeline. Only the first two stages sit on the real-time path.</figcaption>
+            </figure>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision record — the controller as proposer</p>
+              <dl>
+                <dt>context</dt>
+                <dd>Most prior work trusts the controller, yet it is the single most valuable target in the network, and a compromised controller can poison the topology without touching a single LLDP packet.</dd>
+                <dt>decision</dt>
+                <dd>Demote the controller to a client of the blockchain. It can propose link-state changes, but RSU endorser peers verify each proposal against their own observations and only a two-thirds trust-weighted supermajority commits it.</dd>
+                <dt>trade-off</dt>
+                <dd>Eliminates the controller as a single point of failure for every attack variant, at the cost of consensus latency on topology commits — which is why consensus runs asynchronously and a local pending-blacklist gives immediate protection in the meantime.</dd>
+              </dl>
+            </aside>
+
+            <h3>Who does what</h3>
+            <p>The framework deliberately maps each role onto the SD-VEN hardware hierarchy:</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Component</th><th scope="col">Runs on</th><th scope="col">Role</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>GAN generators</td><td>RSU edge servers</td><td>Synthesise adversarial LLDP feature vectors — the coalition's evasion strategy</td></tr>
+                  <tr><td>GAN discriminators</td><td>Vehicles</td><td>Score local link traffic without ever transmitting raw LLDP streams</td></tr>
+                  <tr><td>Four smart contracts</td><td>RSU endorser peers</td><td>Authentication, reputation, controller trust and federated aggregation</td></tr>
+                  <tr><td>Threshold signing committee</td><td>n RSUs</td><td>Jointly co-sign link-state updates; no single RSU holds the key</td></tr>
+                  <tr><td>SDN controller</td><td>Client node only</td><td>Proposes topology and commits the monitoring policy; holds no endorser or orderer role</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Two deployment modes</h3>
+            <p>Vehicle On-Board Units range from capable to severely constrained, so BSGFT ships as two modes that share one architecture.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Dimension</th><th scope="col">BSGFT-H (full security)</th><th scope="col">BSGFT-L (lightweight)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Authentication</td><td>FALCON-1024 (t, n) threshold signatures, Kyber-1024 share distribution</td><td>HMAC-SHA256 with a controller-issued unicast key</td></tr>
+                  <tr><td>Key management</td><td>DH-integrated Logical Key Hierarchy, O(log N) re-keying</td><td>Unicast, O(N) re-keying</td></tr>
+                  <tr><td>Detection</td><td>Federated GAN discriminator</td><td>Rule-based signature scorer</td></tr>
+                  <tr><td>Monitoring policy</td><td>Closed-form Stackelberg equilibrium per link</td><td>Binary: monitor only what the rules flag</td></tr>
+                  <tr><td>Blockchain</td><td>RASC + REPC + CTEF + FLASC</td><td>REPC only</td></tr>
+                  <tr><td>Intended for</td><td>Safety-critical deployments</td><td>Resource-constrained OBUs; design target ≥70% lower complexity</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision record — two modes instead of one</p>
+              <dl>
+                <dt>context</dt>
+                <dd>A single full-security pipeline would price constrained OBUs out of the network; a single lightweight one would leave safety-critical services exposed to cross-class evasion that rules cannot see.</dd>
+                <dt>decision</dt>
+                <dd>Keep one feature vector, one reputation layer and one decision interface, and swap the expensive components per mode.</dd>
+                <dt>trade-off</dt>
+                <dd>The lightweight mode is structurally blind to hybrid attacks that stay below every individual threshold — a gap the evaluation measures explicitly (cross-class evasion rate) rather than hides.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ 06 METHODOLOGY ============ -->
+          <section class="cs-sec" id="methodology">
+            <h2>Methodology</h2>
+
+            <h3>Attack signatures and the feature vector</h3>
+            <p>
+              Five measurable signatures are extracted per link over a 500 ms sliding window. Each is shaped so that
+              benign traffic scores at or below zero and the value reads as evidence directly.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Signature</th><th scope="col">Targets</th><th scope="col">What it measures</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Inter-arrival timing anomaly</td><td>Fabrication</td><td>Mean squared relative deviation of LLDP arrivals from the mobility-predicted interval — forged frames arrive faster than mobility can produce them</td></tr>
+                  <tr><td>Per-port packet rate</td><td>Flooding</td><td>Fractional excess of the busiest port over the protocol's own ceiling</td></tr>
+                  <tr><td>Source identity consistency</td><td>MiTM / replay</td><td>Number of distinct chassis IDs seen on one link, minus one — an exact count of impostors</td></tr>
+                  <tr><td>Port-state transition</td><td>Combined fabrication + relay</td><td>KL divergence of observed port-state time shares from the legitimate profile</td></tr>
+                  <tr><td>Controller Packet-Out anomaly</td><td>Malicious controller</td><td>Packet-Outs for links absent from ground truth, plus excess Packet-Out rate, measured by independent probe nodes</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Two mobility-context features — topology change rate and per-link discovery frequency — are appended to
+              form a <strong>7-dimensional vector</strong>. The lightweight scorer flags a link if <em>any</em> signature
+              exceeds its threshold (high recall, near-zero cost); the GAN discriminator reads all seven features
+              jointly and outputs a continuous score.
+            </p>
+
+            <h3>Bayesian Stackelberg game</h3>
+            <p>
+              The controller (leader) commits to a monitoring intensity for every link — the probability of actively
+              verifying it each cycle — under a fixed control-plane overhead budget. The commitment is written
+              <strong>on-chain through CTEF</strong>, so the coalition (follower) can read it exactly and best-respond.
+            </p>
+            <p>
+              Publishing the defence sounds counter-intuitive, but it is the point of a Stackelberg formulation: a
+              credible, observable commitment guarantees the defender at least the utility of any simultaneous-move
+              equilibrium, and it forces a rational attacker into a predictable best response the defender can plan
+              against.
+            </p>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Commit</strong><span>Controller publishes the monitoring vector m* on-chain</span></li>
+                  <li class="flow__node"><strong>Observe</strong><span>Coalition reads m* and recent blacklisting events</span></li>
+                  <li class="flow__node flow__node--key"><strong>Best-respond</strong><span>Coalition concentrates its whole budget on the single link–attack-class pair with the highest damage per unit cost</span></li>
+                  <li class="flow__node"><strong>Update beliefs</strong><span>Defender updates its posterior over the coalition's hidden budget and costs from four evidence streams</span></li>
+                  <li class="flow__node"><strong>Recompute</strong><span>A new closed-form m* is committed every strategy cycle</span></li>
+                </ol>
+              </div>
+              <figcaption>One round of the game. The coalition's own attack footprint is the evidence that sharpens the defender's beliefs.</figcaption>
+            </figure>
+
+            <p>Several modelling choices make the game realistic rather than decorative:</p>
+            <ul>
+              <li><strong>Class-specific costs and damage.</strong> Flooding is cheap with no fixed cost; fabrication carries the cost of holding a compromised RSU; MiTM pays for positioning and a wormhole tunnel. Damage is computed from the controller's own topology — betweenness centrality for fabrication, share of discovery load for flooding, share of the fleet's safety-critical routes for MiTM.</li>
+              <li><strong>Optimal intensity below capacity.</strong> A success function that rises with injection rate and then collapses as detection becomes certain gives each class an optimal intensity strictly below its physical maximum — a rational attacker throttles itself.</li>
+              <li><strong>Closed-form solution.</strong> The follower problem decomposes into an independent per-class intensity choice and a linear budget allocation that always lands on a single link–class pair. Substituting it back and solving the KKT conditions yields a <strong>closed-form per-link monitoring policy</strong>: monitoring rises with worst-case damage, attacker budget and peak miss probability, and falls with verification cost. Links whose expected damage is not worth their verification cost are deliberately left unmonitored.</li>
+              <li><strong>Peak, not mean, miss probability.</strong> Because the coalition times injections to mobility peaks, the policy is calibrated against the worst topology-change rate in each window.</li>
+              <li><strong>Rationality floor against a malicious controller.</strong> A compromised controller could commit "monitor nothing". RSU peers reject any committed policy that does not give high-damage links proportionally more monitoring, and keep enforcing the last valid one.</li>
+            </ul>
+            <p>
+              The defender cannot see the coalition's budget or costs, so the solution concept is a <strong>Perfect
+              Bayesian Equilibrium</strong>: the policy is optimal under the current belief at every round and converges
+              to the complete-information Subgame Perfect Nash Equilibrium as the belief concentrates. The prior is
+              anchored at worst-case capability bounds, so the policy is conservative from the first round.
+            </p>
+            <p>
+              The most novel theoretical result is <strong>coupled convergence</strong>. The monitoring policy depends on
+              both the belief state and the GAN's per-class miss rate, so it stabilises only when <em>both</em> converge
+              — and each accelerates the other. A stable policy gives the GAN consistent training data; a stable GAN
+              makes the coalition's best response change more slowly, which sharpens the belief. Q-learning has no such
+              property: a rational coalition can keep its Q-table non-stationary indefinitely.
+            </p>
+
+            <h3>Federated GAN for privacy-preserving detection</h3>
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/bsgft-federated-gan.png" target="_blank" rel="noopener">
+                <img src="images/bsgft-federated-gan.png" alt="The federated GAN architecture, with RSU generators, vehicle discriminators and reputation-weighted aggregation on the blockchain ledger" width="2400" height="1545" loading="lazy">
+              </a>
+              <figcaption>RSU generators synthesise evasive feature vectors; vehicles train discriminators locally and submit only noisy gradients; FLASC aggregates them on RSU peers.</figcaption>
+            </figure>
+
+            <p>
+              The generator is not just a training aid — it <strong>is</strong> the B2 tactical adversary. It works only in
+              the 7-dimensional feature space and has no notion of attack classes, yet minimax training pushes it
+              toward vectors that partially trip several signatures while staying below every individual threshold.
+              Those are precisely the cross-class hybrid patterns a rational coalition would produce, and precisely the
+              region a static classifier trained on single-class attacks cannot model.
+            </p>
+            <p>Getting a federated GAN to train stably under heavy attack traffic required a set of deliberate stability mechanisms:</p>
+            <ul>
+              <li><strong>Sliding-window buffers with fine-tuning.</strong> V2V links can live only seconds, so each vehicle trains on a buffer spanning all its recent links, fine-tuning the global model rather than training from scratch.</li>
+              <li><strong>Benign anchor set.</strong> A small set of confirmed-benign samples is never evicted, so the discriminator never loses its reference for normal traffic when an attack floods the buffer.</li>
+              <li><strong>Reputation-weighted aggregation.</strong> Contributions are weighted by blockchain reputation and dataset size; nodes below the admission threshold are excluded entirely.</li>
+              <li><strong>Differential privacy.</strong> Gaussian noise calibrated to an (ε, δ) budget is added to every gradient before submission.</li>
+              <li><strong>EMA inference snapshot.</strong> The real-time classifier only ever sees an exponential moving average of the global weights, decoupling slow training from fast inference and preventing "discriminator whiplash". The coupling is strictly read-only — no gradient crosses into the hot path.</li>
+              <li><strong>Two-phase rounds.</strong> Discriminators aggregate first; only then do generators take a small number of throttled steps against the new global model, so generators never train against stale weights.</li>
+              <li><strong>Conjunctive collapse watchdog.</strong> Training rolls back to the last good on-chain snapshot only when threshold drift, windowed MCC <em>and</em> anchor-score drift all signal degradation together — so productive learning phases are not interrupted by a single noisy signal.</li>
+            </ul>
+
+            <h3>Blockchain trust layer</h3>
+            <p>Four Go smart contracts run on RSU endorser peers of a permissioned Hyperledger Fabric network. The controller is only a client.</p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">Contract</th><th scope="col">Responsibility</th><th scope="col">Key mechanism</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>RASC</strong> — Registration &amp; Authentication</td><td>Two-way identity: nodes to the chain, and the controller back to RSUs and vehicles</td><td>FALCON-1024 key registration; new nodes start on probation below the federated-learning admission threshold</td></tr>
+                  <tr><td><strong>REPC</strong> — Reputation-weighted Endorser Policy Consensus</td><td>Byzantine-tolerant reputation and blacklisting</td><td>Votes weighted by endorser trust; penalties far outweigh rewards; blacklisting needs low reputation <em>and</em> a two-thirds weighted negative supermajority; one Merkle-rooted batch commit per window with the full audit trail on IPFS</td></tr>
+                  <tr><td><strong>CTEF</strong> — Controller Trust Evaluation &amp; Failover</td><td>Continuous trust scores for active and standby controllers</td><td>Active controllers scored on agreement with RSU observations and policy compliance; standbys probed on an unpredictable block-hash schedule; failover draws <strong>uniformly at random</strong> from all controllers above an eligibility threshold, so attackers cannot pre-compromise "the" backup</td></tr>
+                  <tr><td><strong>FLASC</strong> — Federated Learning Aggregation</td><td>Two-phase federated GAN rounds</td><td>Admission gating, reputation-weighted aggregation, EMA snapshot, collapse watchdog, hash-anchored model commits</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Post-quantum authentication and key management</h3>
+            <ul>
+              <li><strong>Distributed key generation.</strong> A signing committee of RSUs runs a Pedersen-style DKG: each RSU commits to a secret polynomial, distributes Kyber-1024-encrypted shares, and verifies every share it receives. No dealer — and no single RSU — ever holds the full key.</li>
+              <li><strong>Threshold FALCON-1024 signing.</strong> Because FALCON's signing is non-linear in the secret key, naive interpolation of partial signatures does not produce a valid signature. The design therefore uses an MPC-based lattice threshold construction, with zero-knowledge proofs on every contribution so Byzantine RSUs cannot inject malformed shares. Any t−1 compromised RSUs cannot forge a link-state update.</li>
+              <li><strong>Session HMACs.</strong> Per-link keys derived from an ECDH-256 secret and the current session epoch expire automatically, blocking replay inside the signature window; a separate domain-tagged key encrypts I2I LLDP payloads with AES-128-GCM.</li>
+              <li><strong>Logical Key Hierarchy.</strong> A DH-integrated binary key tree means evicting a blacklisted vehicle rotates only the keys on its root path — O(log N) messages instead of O(N). The root key is derived jointly from private DKG constants and doubles as the AES-GCM group key for I2V and V2V payloads, so a blacklisted node immediately loses the ability to read discovery traffic.</li>
+            </ul>
+
+            <h3>Real-time versus offline execution</h3>
+            <p>Everything that decides whether a packet is accepted runs inside one discovery cycle; everything that learns or reaches consensus runs between cycles.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Real-time operation</th><th scope="col">Budget</th><th scope="col">Offline operation</th><th scope="col">Budget</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Threshold signature verification</td><td>≤ 8 ms</td><td>REPC consensus (per 500 ms window)</td><td>45–65 ms</td></tr>
+                  <tr><td>HMAC-SHA256 validation</td><td>≤ 1 ms</td><td>CTEF controller evaluation</td><td>30–50 ms</td></tr>
+                  <tr><td>Feature extraction</td><td>≤ 2 ms</td><td>FLASC aggregation</td><td>80–120 ms</td></tr>
+                  <tr><td>GAN discriminator inference</td><td>≤ 12 ms</td><td>Key share rotation</td><td>200–400 ms</td></tr>
+                  <tr><td>Stackelberg policy lookup</td><td>≤ 1 ms</td><td></td><td></td></tr>
+                  <tr><td>AES-128-GCM encrypt / decrypt</td><td>≤ 1 ms each</td><td></td><td></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Real-time detection completes in roughly 24 ms. Even at a 120 km/h closing speed, where a V2V link lives
+              about 9 s, an attacker is flagged well within the link's lifetime; the residual "hit-and-run" window is
+              bounded to one REPC consensus round, covered by the local pending-blacklist, and the resulting on-chain
+              blacklist follows the attacker to every subsequent RSU.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/bsgft-execution-pipeline.png" target="_blank" rel="noopener">
+                <img src="images/bsgft-execution-pipeline.png" alt="The BSGFT execution pipeline, with the NS-3 real-time path and the offline federated-learning path joined by a single read-only edge" width="2400" height="1290" loading="lazy">
+              </a>
+              <figcaption>The two execution paths. The only connection is a read-only pull of the EMA snapshot into the classifier.</figcaption>
+            </figure>
+          </section>
+
+          <!-- ============ 07 EVALUATION ============ -->
+          <section class="cs-sec" id="evaluation">
+            <h2>Evaluation setup</h2>
+
+            <h3>Simulation environment</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Parameter</th><th scope="col">Value</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Simulators</td><td>NS-3 3.35, SUMO 1.18, OpenStreetMap</td></tr>
+                  <tr><td>Map</td><td>Midtown Manhattan (34th–59th St, 8th Ave–Lexington Ave) — dense, irregular blocks that stress every attack vector</td></tr>
+                  <tr><td>Area and density</td><td>2 km × 2 km, ~50 vehicles/km²</td></tr>
+                  <tr><td>Nodes</td><td>200 vehicles (mixed cars, trucks, buses, motorcycles), 64 RSUs in an 8 × 8 grid at 250 m spacing, 4 controllers (1 active, 3 standby)</td></tr>
+                  <tr><td>Radio</td><td>IEEE 802.11p DSRC at 5.89 GHz, 41 dBm, COST 231 Hata, R<sub>max</sub> ≈ 690 m</td></tr>
+                  <tr><td>Backbone</td><td>1 Gbps CSMA, 10 µs delay</td></tr>
+                  <tr><td>Blockchain</td><td>Hyperledger Fabric 3.0, four Go chaincodes, NS-3 ↔ Go HTTP gateway ↔ gRPC over TLS</td></tr>
+                  <tr><td>Cryptography</td><td>liboqs FALCON-1024 (NIST Level 5) and Kyber-1024 via a dedicated microservice</td></tr>
+                  <tr><td>GAN</td><td>3-layer MLPs, hidden width 128; Adam with discriminator lr 10⁻³ and generator lr 3 × 10⁻⁴; one FL round every 10 s</td></tr>
+                  <tr><td>Privacy</td><td>Gaussian mechanism, (ε, δ) = (8, 10⁻⁵)</td></tr>
+                  <tr><td>Runs</td><td>300 s (600 detection windows of 500 ms); injection probability 0.80</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <figure class="figure">
+              <a class="figure__media" href="images/bsgft-simulation-environment.png" target="_blank" rel="noopener">
+                <img src="images/bsgft-simulation-environment.png" alt="Schematic of the 2 km by 2 km simulation area with an 8 by 8 RSU grid, 200 vehicles, one RSU radio range and the four-controller backbone" width="2400" height="1395" loading="lazy">
+              </a>
+              <figcaption>The simulation environment. RSU spacing and the 690 m radio range are to scale; the road grid is illustrative.</figcaption>
+            </figure>
+
+            <p>
+              Malicious controllers scale with attacker penetration (none below 10%, up to three above 66%), exercising
+              CTEF both below and above its failover threshold. Malicious RSUs are placed half at random and half at the
+              highest-betweenness positions, so the attacker holds strategically valuable ground rather than a
+              convenient corner of the grid.
+            </p>
+
+            <h3>Metrics</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Metric</th><th scope="col">What it captures</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>M1 MCC</td><td>Primary detection quality; robust to the heavy benign/malicious class imbalance</td></tr>
+                  <tr><td>M2 AME<sub>k</sub></td><td>Per-class mitigation effectiveness on a common 0–1 scale (topology integrity, bandwidth preserved, packets not intercepted)</td></tr>
+                  <tr><td>M3 LDL</td><td>Link discovery latency, mean and 95th percentile; target ≤ 100 ms at p95</td></tr>
+                  <tr><td>M4 Complexity</td><td>Compute time across crypto, AI, blockchain and game components, plus per-cycle bytes</td></tr>
+                  <tr><td>M5 RAS</td><td>Rational Adversary Resilience — MCC against the rational coalition divided by MCC against a naive attacker at equal budget</td></tr>
+                  <tr><td>M6 CE</td><td>Cross-class evasion rate — generator vectors caught by the GAN that every rule threshold misses</td></tr>
+                  <tr><td>M7 NSI</td><td>Scalability exponent from a log-log fit of each metric against fleet size</td></tr>
+                  <tr><td>M8–M10</td><td>Ablation-only: coupled-convergence rate, controller failover, forged-signature acceptance under compromised signers</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Experiment design</h3>
+            <p>Five benchmark experiments stress BSGFT along orthogonal axes, all with fabrication, flooding and MiTM active at once:</p>
+            <ul>
+              <li><strong>E1</strong> — attack penetration (0–100%) × injection intensity (0.40 / 0.60 / 0.80)</li>
+              <li><strong>E2</strong> — vehicle speed from 10 to 140 km/h</li>
+              <li><strong>E3</strong> — fleet size from 100 to 400 vehicles</li>
+              <li><strong>E4</strong> — six <em>Attacker Rationality Levels</em>, from a non-adaptive attacker to a fully rational coalition that re-optimises every cycle with perfect timing and 1.2× the prior budget</li>
+              <li><strong>E5</strong> — coalition class composition, from single-class attacks to an equal mix to the coalition's own rational-optimal allocation</li>
+            </ul>
+            <p>
+              Seven ablation groups then remove one component at a time across detection, GAN stability, federated
+              architecture, game theory, blockchain, cryptography and the mobility model.
+            </p>
+
+            <h3>Calibration findings</h3>
+            <p>Detection thresholds were set by a cascaded grid search, and several results were more interesting than the selected values themselves:</p>
+            <ul>
+              <li>The <strong>fabrication threshold</strong> has a sharp crossover rather than a smooth optimum. Below 1.00, near-simultaneous benign arrivals saturate the score exactly like attack bursts (MCC 0.439, FPR 0.807); at 1.00 and above, MCC jumps to 0.979 with FPR 0.041.</li>
+              <li>The <strong>MiTM threshold</strong> turned out to be non-binding: 99.93% of MiTM windows are already caught by at least one other signature.</li>
+              <li>The <strong>controller threshold</strong> only showed signal once the sweep was extended past the score's first discrete level; correcting its placeholder default lifted MCC from 0.907 to 1.000 at the 80% operating point.</li>
+              <li>The <strong>monitoring policy is invariant</strong> to ±50% changes in every attacker cost constant — by construction, since the budget multiplier is re-solved each window to keep control-plane overhead at its cap.</li>
+              <li><strong>Differential privacy has a cliff, not a slope.</strong> At ε = 1 the watchdog rolled back 137 of 150 rounds and cross-class evasion detection collapsed to 0.050; at ε = 3 it was still 128 rollbacks; at the deployed ε = 8 there were none. The dominant cost of stronger privacy here is training instability, not gradual accuracy loss.</li>
+            </ul>
+          </section>
+
+          <!-- ============ 08 RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+
+            <h3>End-to-end pipeline verification</h3>
+            <p>
+              A 20-second NS-3 run alongside a long-running federated session on the live Fabric network confirmed that
+              the game and learning machinery execute as specified, not merely compile.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Block (time)</th><th scope="col">Belief concentration</th><th scope="col">Estimated attacker budget</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>1 (0.5 s)</td><td>0.000</td><td>48.00 (worst-case prior)</td></tr>
+                  <tr><td>5 (2.5 s)</td><td>0.386</td><td>17.87</td></tr>
+                  <tr><td>11 (5.5 s)</td><td>0.768</td><td>12.81</td></tr>
+                  <tr><td>24 (12.0 s)</td><td>0.972</td><td>9.27</td></tr>
+                  <tr><td>39 (19.5 s)</td><td>0.998</td><td>9.27</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              The defender's estimate of the coalition's budget tightened by <strong>80.7%</strong> while the mean
+              monitoring intensity held steady at about 0.32 — the budget-constrained solve re-normalised correctly even
+              as the threat estimate shrank five-fold.
+            </p>
+            <p>
+              On the federated side, <strong>157 consecutive rounds</strong> completed on the live network with
+              <strong>zero rollbacks</strong> and a distinct ledger commit each round. Roughly 9 of 32 registered vehicles
+              were admitted each round; the rest were correctly held at their probationary reputation. The loss curves
+              show a clear adversarial exchange in the first 70 rounds — discriminator loss falling to ~0.40 while the
+              generator peaks near 2.8, then the roles reversing — before both settle into a bounded equilibrium with a
+              stable detection threshold of ~0.38. A one-step generator schedule had produced 61 rollbacks under the
+              same conditions; three steps produced none.
+            </p>
+
+            <div class="gallery">
+              <figure class="figure">
+                <a class="figure__media" href="images/bsgft-belief-convergence.png" target="_blank" rel="noopener">
+                  <img src="images/bsgft-belief-convergence.png" alt="Two line charts: belief concentration rising from 0 to 0.998 and the estimated attacker budget falling from 48.0 to 9.27 over a 20-second run" width="2400" height="1080" loading="lazy">
+                </a>
+                <figcaption>The belief trace from the table above: concentration rises to 0.998 as the budget estimate falls 80.7% and plateaus.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/bsgft-stackelberg-flow.png" target="_blank" rel="noopener">
+                  <img src="images/bsgft-stackelberg-flow.png" alt="Stackelberg game flow between the controller as leader and the rational attacker as follower" width="2400" height="1350" loading="lazy">
+                </a>
+                <figcaption>The leader–follower interaction the belief trace above comes from.</figcaption>
+              </figure>
+            </div>
+
+            <p>
+              <strong>Controller failover</strong> was verified end-to-end with 70% attackers and 70% malicious
+              controllers: CTEF drove the active controller's trust to zero and failed over at about 17.5 s, with
+              <strong>98.9% packet delivery</strong> sustained afterwards.
+            </p>
+            <p>
+              <strong>Cross-class evasion:</strong> on 500 generator-crafted vectors, the GAN discriminator caught
+              <strong>36.2%</strong> that every individual rule threshold classified as benign — direct evidence that the
+              adversarial detector sees attacks the lightweight mode structurally cannot.
+            </p>
+
+            <h3>The three-layer architecture, confirmed empirically</h3>
+            <p>The diagnostic ablations revealed that the defence layers really do divide the work as designed:</p>
+            <ul>
+              <li><strong>The reputation layer handles fabrication and flooding.</strong> Malicious RSUs were blacklisted by REPC within about 2 s of simulation start. In one 60-second run, <strong>111,930 attack packets</strong> were rejected at the identity gate — nearly the run's entire true-positive count — and not a single fabrication or flooding sample ever reached the statistical detector.</li>
+              <li><strong>The statistical layer handles MiTM and replay.</strong> A replayed packet carries the identity of a trusted, non-blacklisted RSU, so it passes the identity gate. Every remaining detection decision is a MiTM decision.</li>
+            </ul>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">Configuration (60% attackers)</th><th scope="col">MCC</th><th scope="col">FPR</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Rule-based only, naive attacker, no blockchain</td><td>0.634</td><td>0.597</td></tr>
+                  <tr><td>GAN only, naive attacker, no blockchain</td><td>0.283</td><td>0.920</td></tr>
+                  <tr><td>Rule-based only, rational coalition, blockchain on</td><td>0.729</td><td>0.465</td></tr>
+                  <tr><td>Hybrid AND + uniform monitoring, rational coalition</td><td>0.616</td><td>0.596</td></tr>
+                  <tr><td><strong>Hybrid AND + Stackelberg policy, rational coalition</strong></td><td><strong>0.983</strong></td><td><strong>0.033</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              The full configuration — hybrid detection, Stackelberg scheduling and the blockchain layer against a
+              rational coalition — clearly outperformed every partial one. Combining rule and GAN verdicts with
+              <strong>AND</strong> rather than OR mattered too: OR inherited every rule false positive and dropped MCC to
+              0.430 on the same configuration.
+            </p>
+
+            <h3>Lightweight mode (BSGFT-L) benchmarks</h3>
+            <p>The lightweight mode completed all five benchmark experiments.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">Experiment</th><th scope="col">Result</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>E1 — penetration 20% → 100%</td><td>MCC 0.892 → 0.771 → 0.627 → 0.439 → 0.082; identical across all three injection intensities. Fabrication and flooding mitigation stayed at <strong>1.000</strong> throughout — the failure mode at saturation is false alarms, not successful attacks. Mean latency 2.50 → 26.98 ms (p95 55.0 ms)</td></tr>
+                  <tr><td>E2 — 10 → 140 km/h</td><td>MCC <strong>0.709 at every speed</strong>, with identical FP and FN counts — the rule scorer never reads the two mobility features, which sets a clean baseline for measuring what those features add in full mode</td></tr>
+                  <tr><td>E3 — 100 → 400 vehicles</td><td>MCC 0.704–0.709; latency nearly scale-invariant (NSI b ≈ 0.06), compute near-linear (b ≈ 0.98)</td></tr>
+                  <tr><td>E4 — rationality level 1 → 6</td><td>MCC 0.709 → 0.670; false negatives absent against a naive attacker, appearing at level 2 (223) and growing to 892 against a fully rational coalition — graceful, not catastrophic, degradation</td></tr>
+                  <tr><td>E5 — class composition</td><td>Flood-only strongest (MCC 0.930), fabrication-only weakest (0.604, yet every fabricated link still kept out); equal mix 0.709 falling to 0.670 under the coalition's rational-optimal allocation</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              For reference, our reimplementations of prior defences on the same testbed showed the scale of the
+              problem: BQLLDA's MCC fell from about 0.55 to 0.15–0.39 at full penetration depending on attack class, and
+              the topology integrity of both RLV and LINK-GUARD collapsed to 0.10 or below by 40% penetration.
+            </p>
+
+            <aside class="callout">
+              <p class="callout__label">reading these numbers</p>
+              <p>
+                The lightweight-mode results and the diagnostic runs above are the confirmed results. Full-scale BSGFT-H
+                benchmarks were pending a blockchain-layer signature-verification issue at submission, and the baseline
+                reimplementation runs did not record their injection intensity, so they serve as reference context
+                rather than a head-to-head comparison. All experiments are single-seed.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 09 LIMITATIONS ============ -->
+          <section class="cs-sec" id="limitations">
+            <h2>Limitations</h2>
+            <p>Being explicit about what the prototype does not yet prove was part of the work, and every item below is documented in the report:</p>
+            <ul>
+              <li><strong>Threshold signing is designed but not wired in.</strong> The DKG chaincode — Kyber-encrypted, ZKP-verified — exists, but the live NS-3 signing path falls back to a single FALCON-1024 keypair with the quorum acting as a headcount gate. A conformant MPC combination is the largest open engineering gap.</li>
+              <li><strong>Byzantine tolerance lives in the application layer.</strong> The test network uses Fabric's crash-fault-tolerant Raft ordering. Byzantine-controller tolerance comes from CTEF's trust scoring and failover, not from the consensus layer.</li>
+              <li><strong>The GAN threshold needed an override.</strong> The FPR-targeted ROC calibration placed the threshold above a tightly clustered attack-score distribution under a rational coalition (0.4317, missing most attacks); a fixed 0.05 recovered MCC from 0.82 to 0.983.</li>
+              <li><strong>Model aggregation is auditable, not attested.</strong> The ledger anchors a hash of each round's aggregated model, giving an immutable audit trail of which model was produced, but does not re-execute the aggregation on-chain.</li>
+              <li><strong>Some operating points are near-degenerate.</strong> A perfect MCC with zero false negatives at certain settings reflects the stacked cryptographic pre-filter, a zero-margin flooding threshold and OR-combined verdicts as much as detector skill, and is treated with caution rather than reported as a headline.</li>
+            </ul>
+          </section>
+
+          <!-- ============ 10 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li><strong>Convergence can be a bug in disguise.</strong> The generator loss sat at a perfectly constant 18.4207 — which is −log(10⁻⁸). Float32 had rounded 1 − D(x) + 10⁻⁸ to exactly 1.0, zeroing the gradient every round. Since then, a suspiciously flat training curve is the first thing I check, not the last.</li>
+              <li><strong>Some limits are structural, not tuning problems.</strong> Twelve combinations of weight decay, discriminator steps and instance noise all plateaued generator variance at 0.045–0.047. The cause was a mathematical ceiling of ~0.041 on a BatchNorm-then-Sigmoid output with unit gain. Raising one initial gain to 2.0 fixed it. When a sweep is uniformly flat, I now look for the bound before searching harder.</li>
+              <li><strong>Parallel "temporary" logic quietly takes over.</strong> An early mock trust model, never removed, was what actually drove every failover decision — and it contradicted the on-chain equation. A second bug called a chaincode function that did not exist and silently fell back to a naive pick. I now treat every silent fallback as a defect until proven otherwise.</li>
+              <li><strong>Labels at system boundaries deserve their own tests.</strong> Every attack window sent to the federated server was labelled "fabrication", so the model never saw a single flooding or MiTM sample and two per-class miss rates were undefined. The model was fine; the interface was lying to it.</li>
+              <li><strong>Layered defences change how you read an ablation.</strong> Because reputation and cryptography remove fabrication and flooding upstream, overall MCC blends three layers. Measuring the GAN's real contribution meant isolating MiTM detection — a lesson about attribution I would apply to any defence-in-depth system.</li>
+              <li><strong>Optimise the metric you report.</strong> An FPR-constrained threshold is not an MCC-optimal threshold, and under adversarial score distributions the gap is large. Next time, the calibration objective and the evaluation metric would be chosen together from the start.</li>
+              <li><strong>Write the honest version.</strong> Documenting the threshold-signing gap with a quantified consequence, rather than smoothing it over, made the report stronger in review — and made the remaining work obvious to whoever picks it up next.</li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

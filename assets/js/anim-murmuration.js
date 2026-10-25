@@ -1,5 +1,6 @@
 /*
   Landing animation: murmuration.
+  Off for now: hero-animation.js leaves it out of ANIMATIONS, so it never loads.
   Ported from docs/animations/murmuration.html. Loaded on demand by
   hero-animation.js, which calls mountMurmuration(canvas) and keeps the
   returned destroy() for when the visitor switches animation.

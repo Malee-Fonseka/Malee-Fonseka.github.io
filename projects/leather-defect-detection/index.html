@@ -1,0 +1,653 @@
+<!doctype html>
+<!-- Generated from _case-study.md. Edit the Markdown and regenerate; changes made here are overwritten. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leather Defect Detection · Maleesha Fonseka</title>
+  <meta name="description" content="Case study: Pixel-level segmentation of five leather defect types with an Attention U-Net, run live in a PyQt5 desktop app that measures damaged area and gives a pass/fail verdict.">
+  <meta name="theme-color" content="#0b0d0e">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Leather Defect Detection · case study">
+  <meta property="og:description" content="Pixel-level segmentation of five leather defect types with an Attention U-Net, run live in a PyQt5 desktop app that measures damaged area and gives a pass/fail verdict.">
+  <link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&amp;display=swap">
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="../../index.html" aria-label="Maleesha Fonseka, home">
+        <span class="brand__mark" aria-hidden="true">MF</span>
+        <span class="brand__name">maleesha<b>.</b>fonseka</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../../index.html">home</a>
+        <a href="../../projects.html" aria-current="page">projects</a>
+        <a href="../../about.html">about</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- ============ HEADER ============ -->
+      <header class="cs-head" id="top">
+        <a class="cs-back" href="../../projects.html">← all projects</a>
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">leather-defect-detection</span>
+        </nav>
+
+        <p class="cs-kicker rise">Case study · Team coursework, EE7204/EC7205 image processing &amp; computer vision</p>
+        <h1 class="rise" style="--i:1">Leather Defect Detection</h1>
+        <p class="cs-lede rise" style="--i:2">
+          A desktop inspection tool for leather: point a camera at a hide and it colours every
+          defective pixel by type (discolouration, cut, fold, glue, poke), measures the damaged
+          area and gives a pass/fail verdict. Our team trained an Attention U-Net on MVTec AD with
+          simulated low-light conditions. I built the application around it, running inference on a
+          background thread so the window stays responsive on a machine with no GPU.
+        </p>
+
+        <ul class="chips rise" style="--i:4" aria-label="Tech stack">
+          <li class="key">TensorFlow / Keras</li><li class="key">Attention U-Net</li><li class="key">PyQt5</li>
+          <li>Python</li><li>OpenCV</li><li>NumPy</li><li>scikit-image</li><li>DDPM</li><li>Google Colab</li>
+        </ul>
+
+        <div class="cs-links rise" style="--i:5">
+          <a class="btn btn--primary" href="https://github.com/Tharindu396/Leather_defect_detection" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <div class="cs-layout">
+
+        <!-- ============ CONTENTS ============ -->
+        <aside class="toc" aria-label="Contents">
+          <details open>
+            <summary>contents</summary>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#problem">The problem</a></li>
+              <li><a href="#requirements">Requirements</a></li>
+              <li><a href="#architecture">Architecture</a></li>
+              <li><a href="#solution">How it was solved</a></li>
+              <li><a href="#results">Results</a></li>
+              <li><a href="#lessons">What I learned</a></li>
+            </ol>
+          </details>
+        </aside>
+
+        <article class="prose">
+
+          <!-- ============ 01 OVERVIEW ============ -->
+          <section class="cs-sec" id="overview">
+            <h2>Overview</h2>
+            <p>
+              Leather is a natural material, so every hide arrives with flaws: discoloured patches, knife cuts,
+              folds, spots of glue, small punctures. Before a hide is cut into parts, someone has to find those
+              flaws and decide whether the piece is usable. This project automates that inspection step. It labels
+              every pixel of a leather image as background or one of five defect types, measures how much of the
+              surface is damaged, and compares that with a threshold to give a pass or a fail.
+            </p>
+            <p>
+              It was a team project for our image processing and computer vision module, and it has two halves.
+              The offline half is a set of notebooks: a data pipeline with low-light simulation, a classical
+              computer-vision baseline, a diffusion-model experiment for synthetic data, and the training of the
+              segmentation network. The online half is a desktop application that runs the trained model on a
+              webcam feed, a video file or a single image.
+            </p>
+
+            <aside class="callout">
+              <p class="callout__label">my role</p>
+              <p>
+                I designed and built the desktop application (the model wrapper, the threaded capture-and-inference
+                worker, the interface and the snapshot export) and integrated the team's models into it. Tharindu
+                Bandara built the classical baseline and trained the U-Nets; Akila Piumantha built the data
+                pipeline, the low-light simulator and the diffusion model. Where this write-up says "we", it means
+                the team.
+              </p>
+            </aside>
+
+            <ul class="metrics">
+              <li><span class="metrics__val">6</span><span class="metrics__label">pixel classes: background plus five defect types</span></li>
+              <li><span class="metrics__val">92</span><span class="metrics__label">defect images with masks in the entire dataset</span></li>
+              <li><span class="metrics__val">~8M</span><span class="metrics__label">parameters in the Attention U-Net</span></li>
+              <li><span class="metrics__val">0.4 s</span><span class="metrics__label">per 640×480 frame on CPU, no GPU</span></li>
+            </ul>
+          </section>
+
+          <!-- ============ 02 PROBLEM ============ -->
+          <section class="cs-sec" id="problem">
+            <h2>The problem</h2>
+            <p>
+              Leather inspection is still largely done by eye: an inspector examines each hide under a lamp and
+              marks the flaws by hand. That is slow, and it depends on who is inspecting and how tired they are.
+              Both kinds of mistake are expensive. A missed defect ends up in a finished product; an over-cautious
+              rejection throws away good material. A yes/no classifier doesn't fix this, because grading and
+              cutting decisions depend on <em>where</em> the damage is, <em>what kind</em> it is and <em>how much</em>
+              of the surface it covers. That calls for segmentation: a label for every pixel.
+            </p>
+            <p>Leather is also an awkward subject for computer vision:</p>
+            <ul>
+              <li>
+                <strong>There is no golden reference.</strong> The grain is random and no two hides look alike, so you
+                can't subtract a perfect template the way you would when inspecting a printed circuit board.
+              </li>
+              <li>
+                <strong>Defects look nothing like each other.</strong> A cut is a thin dark line, a fold is a broad
+                low-contrast ridge, glue is a glossy blob, and a colour defect is a soft-edged patch with almost no
+                change in texture.
+              </li>
+              <li>
+                <strong>Defects are tiny.</strong> Most cover less than 1% of the image, so a model that predicts
+                "background" everywhere scores over 99% pixel accuracy while finding nothing.
+              </li>
+              <li><strong>Factory lighting is dim and uneven,</strong> while the public dataset was photographed under controlled studio lighting.</li>
+              <li>
+                <strong>Labelled data is scarce.</strong> MVTec AD, the standard benchmark, has 245 defect-free
+                leather images but only 92 defective ones with pixel masks: 17 to 19 per defect type.
+              </li>
+            </ul>
+
+            <aside class="callout">
+              <p class="callout__label">note</p>
+              <p>
+                MVTec AD was designed for <em>unsupervised</em> anomaly detection: train on good images only, then
+                flag anything unusual. We used it for <em>supervised, multi-class</em> segmentation instead, which
+                meant splitting those 92 defect images across training, validation and test. That scarcity shaped
+                most of the decisions that follow.
+              </p>
+            </aside>
+          </section>
+
+          <!-- ============ 03 REQUIREMENTS ============ -->
+          <section class="cs-sec" id="requirements">
+            <h2>Requirements</h2>
+            <p>
+              Before choosing techniques, we wrote down what the tool had to do for an inspector and the
+              conditions it had to work under.
+            </p>
+
+            <div class="table-wrap table-wrap--text">
+              <table>
+                <thead>
+                  <tr><th scope="col">requirement</th><th scope="col">why it matters</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Segment five defect types separately, per pixel</td><td>Different defects lead to different decisions, and location matters for cutting</td></tr>
+                  <tr><td>Report damaged area as a % of the frame, per class, and in mm² when the sample size is known</td><td>Grading depends on how much of the surface is affected</td></tr>
+                  <tr><td>Give a pass/fail verdict against an adjustable threshold</td><td>Inspectors need a decision, and the acceptable level varies by product</td></tr>
+                  <tr><td>Accept a webcam, a video file or a still image</td><td>Live inspection on a line, plus offline review of saved images</td></tr>
+                  <tr><td>Save evidence for every inspection: frame, overlay, masks and numbers</td><td>Decisions need to be traceable and re-checkable later</td></tr>
+                  <tr><td>Stay accurate in dim, uneven light</td><td>Factory lighting is nothing like the dataset's</td></tr>
+                  <tr><td>Keep the interface responsive while the model runs</td><td>Inference is slower than the camera, and a frozen window is unusable</td></tr>
+                  <tr><td>Run on an ordinary Windows machine with no GPU</td><td>The intended user doesn't have a machine-learning workstation</td></tr>
+                  <tr><td>Load a retrained model without changing the app</td><td>The model was improved several times during the project</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ============ 04 ARCHITECTURE ============ -->
+          <section class="cs-sec" id="architecture">
+            <h2>Architecture</h2>
+            <p>
+              The system has two halves that share exactly one artefact: a saved Keras model. The notebooks produce
+              it and the app consumes it. Between them sits a small contract. A 256 × 256 image scaled to [0, 1]
+              goes in, and a softmax over six classes comes out at the same resolution, always in the same order
+              (<code>background</code>, <code>color</code>, <code>cut</code>, <code>fold</code>, <code>glue</code>,
+              <code>poke</code>) and drawn with the same colours. Keeping that contract narrow let the team keep
+              retraining while I built the app in parallel.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/architecture.svg" target="_blank" rel="noopener">
+                <img src="images/architecture.svg" alt="System diagram. Top: the MVTec AD dataset feeds a data pipeline, which feeds Attention U-Net training, which produces a .keras model file; a classical baseline and a diffusion model sit off to the side as experiments. Bottom: in the desktop app, a source feeds a detection worker thread, which signals the main window, which can save a snapshot. The model file is loaded by the worker." width="960" height="404" loading="lazy">
+              </a>
+              <figcaption>The offline notebooks and the online app meet at a single model file. The dashed boxes were experiments whose output didn't go into the shipped model.</figcaption>
+            </figure>
+
+            <p>Inside the app, responsibilities are split across four modules, each depending only on the ones below it:</p>
+            <ul>
+              <li>
+                <strong><code>main.py</code></strong> is the entry point. It works out which model to load (a command-line
+                flag, then an environment variable, then a default location), and if none is found the app still
+                starts, with a button to pick a model.
+              </li>
+              <li>
+                <strong><code>detector.py</code></strong> wraps the model: loading, preprocessing, inference, colouring
+                masks and computing statistics. It contains no Qt code, so the same class works from a notebook or
+                a script.
+              </li>
+              <li><strong><code>worker.py</code></strong> is a background thread that captures frames and runs the detector on them.</li>
+              <li><strong><code>gui.py</code></strong> is the window: controls on the left, the live view in the middle, statistics and the verdict on the right.</li>
+            </ul>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision</p>
+              <dl>
+                <dt>context</dt>
+                <dd>Inference takes about 0.4 s per frame on a CPU, while a webcam delivers a new frame every 33 ms. Running the model on the UI thread would freeze the window between frames.</dd>
+                <dt>decision</dt>
+                <dd>A dedicated <code>QThread</code> does capture and inference and hands each result to the UI thread through Qt's queued signals; the UI thread only draws. The camera buffer is limited to one frame, so the worker always takes the newest frame instead of working through a backlog.</dd>
+                <dt>trade-off</dt>
+                <dd>The window stays responsive and the view never lags behind reality, but on a slow machine most webcam frames are never inspected. For live inspection that is the right call. Video files are the exception: every frame is processed, slower than real time.</dd>
+              </dl>
+            </aside>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision · what the worker sends</p>
+              <dl>
+                <dt>context</dt>
+                <dd>During inspection, people constantly toggle defect classes on and off and drag the overlay-opacity slider.</dd>
+                <dt>decision</dt>
+                <dd>The worker emits the raw integer class mask rather than a rendered image, and the UI colours it on demand.</dd>
+                <dt>trade-off</dt>
+                <dd>Display changes are instant and never re-run the model. Statistics come from the unfiltered mask, so hiding a class can never change the verdict. The cost is a palette lookup on the UI thread for every redraw, which is negligible.</dd>
+              </dl>
+            </aside>
+          </section>
+
+          <!-- ============ 05 SOLUTION ============ -->
+          <section class="cs-sec" id="solution">
+            <h2>How it was solved</h2>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Data</strong><span>MVTec AD, augmentation and low-light simulation</span></li>
+                  <li class="flow__node"><strong>Baseline</strong><span>classical computer vision, to set the bar</span></li>
+                  <li class="flow__node"><strong>Synthetic data</strong><span>a diffusion-model experiment</span></li>
+                  <li class="flow__node flow__node--key"><strong>Attention U-Net</strong><span>the model the app runs</span></li>
+                  <li class="flow__node"><strong>Desktop app</strong><span>live inspection without a GPU</span></li>
+                </ol>
+              </div>
+              <figcaption>The five strands of the project, from raw data to a tool an inspector can use.</figcaption>
+            </figure>
+
+            <h3>1. Data, and a realistic kind of dark</h3>
+            <p>
+              Every image was resized to 256 × 256, using Lanczos resampling for photos and nearest-neighbour for
+              masks so the labels stay crisp. The defect images were split into training, validation and test sets
+              stratified by defect type, so every class appears in each set. MVTec stores one binary mask per defect
+              image and files the images in folders named after the defect type. A multi-class label map is
+              therefore just the binary mask multiplied by the class index of its folder.
+            </p>
+            <p>
+              Augmentation had to respect the labels. Geometric changes (flips, 90° rotations, scaling) are applied
+              identically to the image and its mask, while photometric ones (brightness, contrast, hue and
+              saturation jitter, blur, noise) touch only the image. Leather has no natural "up", so rotations are
+              free extra data. For v3, defect images were also oversampled, appearing three times per epoch (four
+              for pokes) against once for defect-free images.
+            </p>
+            <p>
+              To make the model robust to bad lighting, Akila wrote a low-light simulator that degrades a well-lit
+              image in four steps, each mimicking a real cause:
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">step</th><th scope="col">what it simulates</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>gamma darkening</td><td>an under-lit scene</td></tr>
+                  <tr><td>directional brightness gradient</td><td>a light source off to one side</td></tr>
+                  <tr><td>vignetting</td><td>a cheap lens that darkens towards the edges</td></tr>
+                  <tr><td>Gaussian noise</td><td>sensor noise at high gain</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              Each defect image gets several degraded copies that share its mask (three for training images, two
+              for validation, one for test). PSNR and SSIM quantify how far the copies drift from the originals.
+              Getting the strength right took several rounds. The first setting, with gamma up to 4, produced images
+              so dark and noisy that there was little left to learn from. The final range is much milder: closer to
+              a dim factory floor than a dark room.
+            </p>
+
+            <h3>2. A classical baseline to beat</h3>
+            <p>
+              Alongside the first deep-learning attempts, Tharindu built a pure computer-vision pipeline to find out
+              how far hand-crafted features could go. It models "good leather" from 50 defect-free images, as the
+              per-pixel mean and standard deviation in greyscale and in LAB colour space, then scores each test image
+              with five anomaly maps:
+            </p>
+            <ul>
+              <li>the multi-scale difference from that reference, measured in standard deviations</li>
+              <li>colour distance in LAB space</li>
+              <li>texture energy from a bank of 40 Gabor filters (5 frequencies × 8 orientations)</li>
+              <li>Laplacian-of-Gaussian edge response, aimed at cuts and folds</li>
+              <li>local variance, to catch changes in texture</li>
+            </ul>
+            <p>
+              The maps are blended with per-defect-type weights, thresholded, and cleaned up with morphological
+              closing and opening and by discarding small connected components. The saved run covers three of the
+              five classes:
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col">defect</th><th scope="col">IoU</th><th scope="col">Dice</th><th scope="col">precision</th><th scope="col">recall</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>colour</td><td>0.0059</td><td>0.0112</td><td>0.0060</td><td>0.1024</td></tr>
+                  <tr><td>cut</td><td>0.0835</td><td>0.1482</td><td>0.0853</td><td>0.8932</td></tr>
+                  <tr><td>fold</td><td>0.1285</td><td>0.2221</td><td>0.1632</td><td>0.5126</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>The pattern of high recall and very low precision says more than the averages do:</p>
+            <ul>
+              <li>
+                <strong>The threshold decides the answer in advance.</strong> A percentile threshold marks at least the
+                top 3–5% of pixels as defective in every image. Most defects are far smaller than that, so precision
+                stays low however good the anomaly maps are.
+              </li>
+              <li>
+                <strong>An average hide is a blur.</strong> Because the grain is random, the per-pixel mean of 50 good
+                images is a smooth grey sheet. Every test image differs from it everywhere, not just at the defect.
+              </li>
+              <li>
+                <strong>It needs the answer to find the answer.</strong> Weights, kernel sizes and thresholds are tuned
+                per defect type, so you would have to know which defect is present before looking for it. That can't
+                be deployed.
+              </li>
+              <li><strong>Colour defects are almost invisible to it.</strong> A soft shift in hue has no edge and no texture change for the filters to catch.</li>
+            </ul>
+
+            <aside class="callout callout--decision">
+              <p class="callout__label">decision · learned features</p>
+              <dl>
+                <dt>context</dt>
+                <dd>The best classical result was an IoU of 0.13, and only with settings tuned for each defect type.</dd>
+                <dt>decision</dt>
+                <dd>Commit to supervised semantic segmentation: one network that learns its own features and labels all five classes at once.</dd>
+                <dt>trade-off</dt>
+                <dd>No per-type tuning, and the network can learn which texture to ignore. In exchange, it needs pixel-level labels (only 92 images have them), GPU time to train, and it is much harder to explain than five anomaly maps.</dd>
+              </dl>
+            </aside>
+
+            <h3>3. Synthetic data with a diffusion model</h3>
+            <p>
+              With so few defect images, generating more was an obvious idea. Akila implemented a denoising
+              diffusion probabilistic model (DDPM) from scratch in TensorFlow. It uses a linear noise schedule over
+              1,000 steps, a U-Net noise predictor with sinusoidal timestep embeddings, residual blocks and
+              self-attention at the bottleneck, and a moving average of the weights for sampling. Generated images
+              were compared with real ones using PSNR and SSIM, and with each other, to catch a model that produces
+              the same image every time.
+            </p>
+            <p>
+              The first version, trained at 64 × 64 on the dark low-light copies alone, had too little signal to
+              learn what leather looks like. The second trained at the full 256 × 256 on every leather image (good
+              and defective, normal and low-light) and switched to DDIM sampling, which can skip steps correctly and
+              needs 200 denoising steps instead of 1,000.
+            </p>
+            <p>
+              The bigger lesson was about labels. An unconditional diffusion model generates images, not image–mask
+              pairs, so the samples were saved with empty placeholder masks. They can't teach a segmentation network
+              where a defect is. Worse, mixed naively into the training set, a defective-looking image with an empty
+              mask would teach the network that defects are background. The segmentation models were trained only on
+              real images and their low-light copies.
+            </p>
+
+            <h3>4. The Attention U-Net</h3>
+            <p>
+              Our first plain U-Net reached a validation mean IoU of only 0.167 before early stopping ended its
+              training at epoch 21. Tharindu's redesign kept the U-Net shape and added components aimed at the
+              specific ways it was failing.
+            </p>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/attention-unet.svg" target="_blank" rel="noopener">
+                <img src="images/attention-unet.svg" alt="Diagram of the Attention U-Net. Four encoder levels on the left go from 256 squared by 32 channels down to 32 squared by 256, then a 16 squared by 512 bottleneck. Four decoder levels on the right mirror them back up to 256 squared by 32. Each skip connection between matching levels passes through an attention gate. The top decoder level feeds the main output, 256 squared by 6 classes; the 64 squared decoder level feeds an auxiliary output used only in v3." width="960" height="600" loading="lazy">
+              </a>
+              <figcaption>Every block uses squeeze-and-excitation (SE), every skip connection passes through an attention gate (AG), and v3 adds an auxiliary output for deep supervision.</figcaption>
+            </figure>
+
+            <ul>
+              <li>
+                <strong>Encoder–decoder with skip connections.</strong> The encoder halves the resolution four times
+                (32 to 512 filters) to understand context. The decoder rebuilds full resolution, and skip connections
+                carry fine detail across so that thin cuts and small pokes survive.
+              </li>
+              <li>
+                <strong>Attention gates on every skip connection.</strong> The decoder's coarser, more semantic features
+                decide which encoder features get through. This answers the classical baseline's core problem: grain
+                looks "anomalous" everywhere, and the gates learn to suppress it while letting defect edges through.
+              </li>
+              <li>
+                <strong>Squeeze-and-excitation in every block.</strong> Each block re-weights its channels using a
+                summary of the whole image, amplifying the features that matter for the image at hand.
+              </li>
+              <li>
+                <strong>Spatial dropout that grows with depth,</strong> from 5% of feature maps near the input to 30% at
+                the bottleneck, so an 8-million-parameter network can't simply memorise a few dozen training images.
+              </li>
+            </ul>
+            <p>
+              Class imbalance is handled in the loss. Focal loss down-weights the easy background pixels the network
+              already gets right. Dice loss is averaged over the five defect classes only, so background can't
+              dominate it. Training used a short learning-rate warm-up followed by cosine decay.
+            </p>
+            <p>The model went through two generations:</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th scope="col"></th><th scope="col">v1</th><th scope="col">v3</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>input</td><td>256 × 256 greyscale</td><td>256 × 256 RGB, contrast-enhanced with CLAHE</td></tr>
+                  <tr><td>training data</td><td>the 92 MVTec defect images, 80/20 train/validation split</td><td>MVTec images plus their low-light copies, with oversampling</td></tr>
+                  <tr><td>outputs</td><td>one segmentation map</td><td>main map, plus an auxiliary map from the 64 × 64 decoder stage</td></tr>
+                  <tr><td>loss</td><td>0.5 × focal + 0.5 × Dice</td><td>0.3 × focal + 0.7 × Dice, both weighted by class frequency; auxiliary output weighted 0.4</td></tr>
+                  <tr><td>schedule</td><td>30 epochs</td><td>up to 50 epochs on a Colab GPU, early stopping on validation IoU</td></tr>
+                  <tr><td>parameters</td><td>7.97 M</td><td>7.97 M</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              v3's changes target what v1 got wrong. RGB input gives the network the colour information it needs for
+              colour defects. CLAHE (contrast-limited adaptive histogram equalisation) recovers local contrast in dark
+              regions before the image reaches the network. The auxiliary output gives the middle of the decoder its
+              own training signal, which helps a deep network learn from very little data.
+            </p>
+
+            <h3>5. The desktop app</h3>
+            <p>
+              This was my part. Its job is to turn a segmentation map into something an inspector can act on, live,
+              on hardware they already have.
+            </p>
+
+            <figure class="figure figure--pad">
+              <div class="figure__media">
+                <ol class="flow">
+                  <li class="flow__node"><strong>Capture</strong><span>a webcam, video or image frame via OpenCV</span></li>
+                  <li class="flow__node"><strong>Preprocess</strong><span>greyscale, 256 × 256, scaled to [0, 1]</span></li>
+                  <li class="flow__node flow__node--key"><strong>Infer</strong><span>the Attention U-Net's softmax over six classes</span></li>
+                  <li class="flow__node"><strong>Post-process</strong><span>argmax, then nearest-neighbour upscaling to the frame size</span></li>
+                  <li class="flow__node"><strong>Report</strong><span>overlay, area per class, pass or fail</span></li>
+                </ol>
+              </div>
+              <figcaption>What happens to every frame. Steps 1–4 run on the worker thread; step 5 runs on the UI thread.</figcaption>
+            </figure>
+
+            <figure class="figure figure--pad">
+              <a class="figure__media" href="images/app-layout.svg" target="_blank" rel="noopener">
+                <img src="images/app-layout.svg" alt="Wireframe of the app window. The left column holds controls: load model, source selection with start, stop and snapshot buttons, display mode and opacity, a checkbox per defect class, and the pass/fail threshold with sample width and height. The centre shows the live image with coloured defect overlays. The right column shows a red FAIL badge, frames per second, total defect area, and a per-class breakdown with colour swatches." width="960" height="560" loading="lazy">
+              </a>
+              <figcaption>The window layout: controls on the left, the live view in the centre, the verdict and statistics on the right.</figcaption>
+            </figure>
+
+            <p>What the inspector gets:</p>
+            <ul>
+              <li><strong>Four display modes:</strong> overlay, mask only, side by side, and the original image, with an opacity slider and a checkbox per defect class.</li>
+              <li>
+                <strong>Area and verdict:</strong> total and per-class defect area as a percentage and in pixels. Enter
+                the sample's width and height in millimetres and it also reports mm². The verdict badge turns red when
+                total defect area crosses the threshold, which is 1% by default.
+              </li>
+              <li>
+                <strong>Snapshots:</strong> one click writes five files sharing a timestamp: the original frame, the
+                overlay, the colour mask, the raw integer mask for later analysis, and a JSON file with the statistics,
+                threshold, verdict and which classes were visible.
+              </li>
+            </ul>
+
+            <p>A few small details mattered more than expected:</p>
+            <ul>
+              <li>
+                <strong>Nearest-neighbour upscaling.</strong> The mask is predicted at 256 × 256 and stretched to the
+                camera's resolution. Smooth interpolation would invent classes along boundaries: halfway between colour
+                (1) and fold (3) is 2, which is cut. Nearest-neighbour keeps every pixel a real label.
+              </li>
+              <li>
+                <strong>A warm-up prediction at load time.</strong> TensorFlow builds its graph on the first call, so the
+                app runs one dummy prediction while loading instead of stalling on the first real frame.
+              </li>
+              <li>
+                <strong>Calling the model directly</strong> rather than through <code>model.predict</code>, which is
+                designed for batches and adds overhead to single-frame inference.
+              </li>
+              <li>
+                <strong>Reading the input shape from the model.</strong> The detector checks how many channels the
+                loaded model expects and shapes frames to match.
+              </li>
+            </ul>
+
+            <p>Two problems had nothing to do with machine learning:</p>
+
+            <aside class="callout">
+              <p class="callout__label">windows dll clash</p>
+              <p>
+                On Windows, TensorFlow failed to start inside the app with <code>DllMain returned FALSE</code> (error
+                0x45A). PyQt5 and OpenCV each ship their own copy of the Microsoft C++ runtime, and if either loads
+                first, TensorFlow's native code can't initialise. The fix is import order: TensorFlow is loaded before
+                any GUI or OpenCV module, so all three share the system runtime. Both the entry point and the GUI
+                module enforce it, with comments warning anyone not to reorder those imports.
+              </p>
+            </aside>
+
+            <ul>
+              <li>
+                <strong>Model files from a newer Keras.</strong> The models were saved by a newer Keras that writes an
+                extra <code>quantization_config</code> setting into every dense layer, which older installations reject.
+                Rather than pin everyone to one exact version, the detector patches the dense layer's constructor to
+                ignore that argument while the model loads, and always restores it afterwards.
+              </li>
+            </ul>
+          </section>
+
+          <!-- ============ 06 RESULTS ============ -->
+          <section class="cs-sec" id="results">
+            <h2>Results</h2>
+            <p>
+              The project delivered a working inspection tool. It segments five defect types live from a webcam, a
+              video or a still image, measures defect area, and gives a pass/fail verdict, at about 0.4 s per
+              640 × 480 frame on a CPU with no GPU.
+            </p>
+            <p>
+              The examples below are v1 predictions from the team's area-calculator notebook, which ran the model
+              over all 92 defect images in MVTec AD. Across them, the model flagged 0.86% of pixels as defective.
+              Folds were the largest defects at 2.6% of the frame on average, colour defects the smallest at 0.25%.
+              Some of these images were in v1's training set, so read them as examples of what the masks look like,
+              not as a measure of how well the model generalises.
+            </p>
+
+            <div class="gallery gallery--wide">
+              <figure class="figure">
+                <a class="figure__media" href="images/pred-glue.png" target="_blank" rel="noopener">
+                  <img src="images/pred-glue.png" alt="Three panels: a glossy round glue blob on grey leather, the predicted mask showing a yellow disc in the same place, and the overlay." width="1030" height="337" loading="lazy">
+                </a>
+                <figcaption>Glue: original, predicted mask, overlay. The mask follows the blob's outline.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/pred-fold.png" target="_blank" rel="noopener">
+                  <img src="images/pred-fold.png" alt="Three panels: a diagonal fold in the leather, a blue elongated predicted mask along it, and the overlay." width="1030" height="337" loading="lazy">
+                </a>
+                <figcaption>Fold: broad and low-contrast, the kind of defect the classical edge filters struggled with.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/pred-cut.png" target="_blank" rel="noopener">
+                  <img src="images/pred-cut.png" alt="Three panels: a torn cut with bright frayed edges, a green predicted mask along its length, and the overlay." width="1030" height="337" loading="lazy">
+                </a>
+                <figcaption>Cut: the mask covers the tear and its frayed edge.</figcaption>
+              </figure>
+              <figure class="figure">
+                <a class="figure__media" href="images/pred-color-as-glue.png" target="_blank" rel="noopener">
+                  <img src="images/pred-color-as-glue.png" alt="Three panels: a small dark spot on the leather, a yellow predicted mask on that spot, and the overlay." width="1030" height="337" loading="lazy">
+                </a>
+                <figcaption>A failure: a dark colour spot labelled as glue. In greyscale, which is all v1 sees, a dark round spot looks like a glue blob. v3 switched to RGB input to give the network colour information.</figcaption>
+              </figure>
+            </div>
+
+            <p><em>Leather images from <a href="https://www.mvtec.com/company/research/datasets/mvtec-ad" target="_blank" rel="noopener">MVTec AD</a>, CC BY-NC-SA 4.0.</em></p>
+          </section>
+
+          <!-- ============ 07 LESSONS ============ -->
+          <section class="cs-sec" id="lessons">
+            <h2>What I learned</h2>
+            <ul>
+              <li>
+                <strong>A baseline that fails is worth building.</strong> The classical pipeline's numbers didn't just say
+                "worse". The high-recall, low-precision pattern pointed straight at the fixed threshold and the
+                per-type tuning, and it explained why the network needed attention gates to ignore the grain.
+              </li>
+              <li>
+                <strong>Generate labels, not just images.</strong> An unconditional diffusion model gave us leather
+                without masks. Next time I'd generate image–mask pairs, for example by conditioning the diffusion model
+                on a mask, or by pasting real defects onto clean leather.
+              </li>
+              <li>
+                <strong>Write down the contract between training and deployment.</strong> v3 changed three things at
+                once: RGB instead of greyscale, CLAHE preprocessing, and a second output. The app's adapter only handled
+                the channel count. I'd now ship the preprocessing steps and output layout alongside the model file, and
+                test the app against every new model before it's handed over.
+              </li>
+              <li>
+                <strong>Most deployment bugs aren't machine-learning bugs.</strong> The hardest problems in the app were
+                DLL load order, serialisation differences between library versions, and frame latency. None of them
+                appear in a tutorial, and each one alone stops a good model from being useful.
+              </li>
+              <li>
+                <strong>Measure robustness directly.</strong> We trained on low-light copies, but what matters is the score
+                on low-light test images compared with normal ones. The v3 notebook computes that split; publishing it
+                next to the model is the next step.
+              </li>
+            </ul>
+          </section>
+
+          <nav class="pager" aria-label="Project navigation">
+            <a href="../../projects.html">← all projects</a>
+            <a href="#top">back to top ↑</a>
+          </nav>
+
+        </article>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__bar">
+        <p>© 2026 Maleesha Fonseka</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://www.linkedin.com/in/maleesha-fonseka" target="_blank" rel="noopener">linkedin</a></li>
+          <li><a href="mailto:maleesha.fonseka@outlook.com">email</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

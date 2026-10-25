@@ -3,6 +3,9 @@
   ============================================================================
   PROJECT CASE STUDY TEMPLATE
   ============================================================================
+  Easier: write _case-study.md (next to this file) instead, and ask Claude to
+  generate this page from it. The steps below are for writing HTML by hand.
+
   How to use:
     1. Copy this whole folder (projects/_template/) to projects/<your-slug>/
        e.g. projects/weather-station/  (lowercase, hyphens, no spaces)
@@ -16,13 +19,17 @@
 
   Building blocks available in a section (copy, paste, delete as needed):
     <p>, <ul>, <ol>, <h3>          normal text, lists, sub-headings
+    <blockquote>                   a quotation, such as an example post
     .metrics                       a row of key numbers
     .figure                        image / screenshot / diagram with caption
     .figure + .figure--pad         padded figure (good for diagrams on white space)
     .flow                          a step-by-step flow diagram in pure HTML
     .gallery                       a grid of several figures
+    .gallery + .gallery--wide      two to a row, for images more than twice as wide as tall
     .callout / .callout--decision  a note or design decision box
     .table-wrap > table            a data table
+    .table-wrap + .table-wrap--text  lets the first column wrap, when it holds sentences
+    th.num / td.num                right-aligns a column of figures
     .code                          a code listing with a filename header
 
   Section numbers (SEC 01…), figure numbers (FIG. 01…) and contents numbers
@@ -69,6 +76,7 @@
 
       <!-- ============ HEADER ============ -->
       <header class="cs-head" id="top">
+        <a class="cs-back" href="../../projects.html">← all projects</a>
         <!-- EDIT: last part of the path is your folder name -->
         <nav class="crumbs" aria-label="Breadcrumb">
           <a href="../../index.html">~</a>/<a href="../../projects.html">projects</a>/<span aria-current="page">your-slug</span>
@@ -82,16 +90,6 @@
           who it is for, and the most interesting thing about how it works.
         </p>
 
-        <!-- EDIT: project facts. Add or remove <div> rows; they reflow automatically. -->
-        <dl class="cs-meta rise" style="--i:3">
-          <div><dt>year</dt><dd>2026</dd></div>
-          <div><dt>role</dt><dd>What you owned</dd></div>
-          <div><dt>team</dt><dd>Solo / N people</dd></div>
-          <div><dt>timeline</dt><dd>Mon YYYY — Mon YYYY</dd></div>
-          <!-- status options: status--done (complete), status--wip (in progress), status--archived -->
-          <div><dt>status</dt><dd><span class="status status--done">complete</span></dd></div>
-        </dl>
-
         <!-- EDIT: tech stack. class="key" highlights the main technologies. -->
         <ul class="chips rise" style="--i:4" aria-label="Tech stack">
           <li class="key">Main tech</li><li>Tech</li><li>Tech</li><li>Tech</li>
@@ -103,14 +101,6 @@
           <a class="btn" href="https://github.com/Malee-Fonseka" target="_blank" rel="noopener">source code <span aria-hidden="true">↗</span></a>
         </div>
       </header>
-
-      <!-- EDIT: cover image (1200×675 or any 16:9 image). Also used as the card thumbnail. -->
-      <figure class="figure figure--cover cs-cover">
-        <div class="figure__media">
-          <img src="images/cover.svg" alt="EDIT: describe what the image shows" width="1200" height="675">
-        </div>
-        <figcaption>One line about what the cover shows.</figcaption>
-      </figure>
 
       <div class="cs-layout">
 
