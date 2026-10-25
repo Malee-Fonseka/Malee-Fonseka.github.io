@@ -6,6 +6,12 @@
   button moves to the next animation and the label beside it names the one
   that is playing. Nothing is stored in the browser.
 
+  A switch shows a loader: the playing animation fades out, the switch icon
+  turns, and the label reads "loading · <name>" with three pulsing squares. It
+  lasts LOADING_MS, or until the next file has loaded if that takes longer, and
+  the switch ignores clicks meanwhile. If the file fails to load, the previous
+  animation comes back.
+
   Each animation lives in its own file next to this one and is loaded the first
   time it is shown. A file registers a mount function:
 
@@ -35,6 +41,7 @@
   if (!hero || !("ResizeObserver" in window) || !("IntersectionObserver" in window)) return;
 
   const label = hero.querySelector(".anim-label");
+  const labelKey = hero.querySelector(".anim-label__key");
   const labelName = hero.querySelector(".anim-label__name");
   const button = hero.querySelector(".anim-switch");
   const scriptBase = document.currentScript.src;   // animation files sit next to this one
@@ -71,18 +78,56 @@
     return `-${covered}px 0px 0px 0px`;
   }
 
+  // After a switch, the loader shows for at least this long, and until the next
+  // animation's file has loaded if that takes longer. The first load has no loader.
+  const LOADING_MS = 3000;
+  const FADE_MS = 400;   // matches the .hero__anim opacity transition in style.css
+
   let wanted = -1;       // index the visitor asked for most recently
   let canvas = null;
   let destroy = null;
+  let busy = false;      // true while the loader shows; the switch ignores clicks
 
-  async function show(index) {
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Loader on: fade the playing animation out and stop it, spin the switch,
+  // and name the animation that is on its way.
+  function startLoading(entry) {
+    busy = true;
+    hero.classList.add("is-loading");
+    button.setAttribute("aria-disabled", "true");
+    labelKey.textContent = "loading · ";
+    labelName.textContent = entry.name;
+    if (canvas) {
+      const old = canvas;
+      const stop = destroy;
+      canvas = destroy = null;
+      old.classList.add("hero__anim--out");
+      setTimeout(() => { if (stop) stop(); old.remove(); }, FADE_MS);
+    }
+  }
+
+  function stopLoading() {
+    busy = false;
+    hero.classList.remove("is-loading");
+    button.removeAttribute("aria-disabled");
+    labelKey.textContent = "now playing · ";
+  }
+
+  async function show(index, { withLoader = false } = {}) {
+    const previous = wanted;
     wanted = index;
     const entry = ANIMATIONS[index];
+    if (withLoader) startLoading(entry);
     let mount;
     try {
-      mount = await load(entry);
+      [mount] = await Promise.all([load(entry), withLoader ? wait(LOADING_MS) : null]);
     } catch (error) {
       console.warn("Landing animation:", error.message);
+      if (withLoader) {
+        stopLoading();
+        if (previous >= 0) show(previous);   // already loaded, so it comes straight back
+      }
       return;
     }
     if (wanted !== index) return;   // another switch came in while this one loaded
@@ -91,16 +136,20 @@
     if (destroy) destroy();
     if (canvas) canvas.remove();
     canvas = document.createElement("canvas");
-    canvas.className = "hero__anim";
+    canvas.className = withLoader ? "hero__anim hero__anim--in" : "hero__anim";
     canvas.setAttribute("aria-hidden", "true");
     hero.prepend(canvas);
     destroy = mount(canvas, { visibleMargin: visibleMargin() });
 
+    if (withLoader) stopLoading();
     labelName.textContent = entry.name;
     label.hidden = false;
     button.hidden = false;
   }
 
-  button.addEventListener("click", () => show((Math.max(wanted, 0) + 1) % ANIMATIONS.length));
+  button.addEventListener("click", () => {
+    if (busy) return;
+    show((Math.max(wanted, 0) + 1) % ANIMATIONS.length, { withLoader: true });
+  });
   show(0);
 })();
